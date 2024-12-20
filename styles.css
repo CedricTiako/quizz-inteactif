@@ -405,3 +405,48 @@ body::before {
 .submit-button:hover::after {
     left: 100%;
 }
+
+/* Reward markers and tooltips */
+.reward-marker {
+    position: absolute;
+    top: -10px;
+    width: 10px;
+    height: 10px;
+    background-color: var(--accent-color);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.reward-marker:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.tooltip-text {
+    visibility: hidden;
+    width: max-content;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: var(--background-color) transparent transparent transparent;
+}

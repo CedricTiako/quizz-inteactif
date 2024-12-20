@@ -504,8 +504,46 @@ async function loadRewards() {
     }
 }
 
+function addRewardMarkers(rewards, totalPoints) {
+    const progressBar = document.getElementById('rewards-progress-bar');
+    const progressContainer = progressBar.parentElement;
+
+    rewards.forEach(reward => {
+        const marker = document.createElement('div');
+        marker.className = 'reward-marker';
+        marker.style.position = 'absolute';
+        marker.style.top = '-10px';
+        marker.style.width = '20px';
+        marker.style.height = '20px';
+        marker.style.backgroundColor = 'transparent';
+        marker.style.borderRadius = '50%';
+
+        const positionPercentage = (reward.points_required / totalPoints) * 100;
+        marker.style.left = `calc(${positionPercentage}% - 10px)`; // Center the marker
+
+        const icon = document.createElement('span');
+        icon.className = 'reward-icon';
+        icon.innerHTML = getRewardIcon(reward.reward); // Assuming a function that maps rewards to icons
+        marker.appendChild(icon);
+
+        progressContainer.appendChild(marker);
+    });
+}
+
+function getRewardIcon(rewardName) {
+    const icons = {
+        'Special Badge': '🏅',
+        'Premium Access': '👑',
+        'Exclusive Content': '⭐'
+    };
+    return icons[rewardName] || '🎁';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Document loaded...');
     initializeUI();
-   // loadRewards();
+    loadRewards();
+    loadTickets().then(tickets => {
+        addRewardMarkers(tickets, 500);
+    });
 });
