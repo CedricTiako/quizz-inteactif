@@ -1,0 +1,407 @@
+/* Variables CSS */
+:root {
+    --primary-color: #6366F1;
+    --secondary-color: #8B5CF6;
+    --accent-color: #F59E0B;
+    --success-color: #10B981;
+    --error-color: #EF4444;
+    --background-color: #0F172A;
+    --text-color: #F1F5F9;
+    --card-bg: rgba(30, 41, 59, 0.7);
+}
+
+/* Styles de base */
+body {
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    color: var(--text-color);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
+
+body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Effet verre amélioré */
+.glass-effect {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-effect:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.4),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+/* Boutons de réponse améliorés */
+.answer-button {
+    background: var(--card-bg);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 1.25rem;
+    color: var(--text-color);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.answer-button:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    transition: 0.6s;
+}
+
+.answer-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.2),
+        0 0 0 2px rgba(99, 102, 241, 0.3);
+}
+
+.answer-button:hover:before {
+    left: 100%;
+}
+
+.answer-button.selected {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border: none;
+    box-shadow: 
+        0 8px 20px rgba(99, 102, 241, 0.3),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.answer-button.correct {
+    background: linear-gradient(135deg, #059669, var(--success-color));
+    border: none;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+}
+
+.answer-button.wrong {
+    background: linear-gradient(135deg, #DC2626, var(--error-color));
+    border: none;
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+}
+
+/* Barre de progression */
+.progress-bar {
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Texte avec dégradé amélioré */
+.gradient-text {
+    background: linear-gradient(135deg, #F1F5F9, #FFF);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
+}
+
+/* Stats Cards */
+.stats-card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+}
+
+.stats-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* Feedback messages améliorés */
+.feedback {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    background: var(--card-bg);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-color);
+    font-weight: 500;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    transform: translateX(100%);
+    animation: slideIn 0.3s forwards cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+}
+
+/* Loader amélioré */
+.loader {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(99, 102, 241, 0.1);
+    border-left-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    position: relative;
+}
+
+.loader:before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border: 4px solid transparent;
+    border-right-color: var(--secondary-color);
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite reverse;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Animation de pulse pour le texte de chargement */
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+.animate-pulse {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Points perdus animation */
+.points-lost {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--error-color);
+    font-size: 2rem;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+    z-index: 1000;
+    pointer-events: none;
+}
+
+/* Animation pour les points perdus */
+@keyframes fadeOutUp {
+    from {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+    to {
+        opacity: 0;
+        transform: translate(-50%, -100%);
+    }
+}
+
+.points-lost.animate__fadeOutUp {
+    animation: fadeOutUp 1s ease-out forwards;
+}
+
+/* Bouton "Question suivante" */
+.next-button {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border: none;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.next-button:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    transition: 0.6s;
+}
+
+.next-button:hover:not(:disabled):before {
+    left: 100%;
+}
+
+.next-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.next-button:disabled {
+    background: linear-gradient(135deg, #4B5563, #6B7280);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Effet de particules */
+.particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    animation: float 20s infinite linear;
+}
+
+@keyframes float {
+    0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+}
+
+/* Animations */
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive design amélioré */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .glass-effect {
+        margin: 0.5rem;
+        padding: 1rem;
+    }
+    
+    .answer-button {
+        font-size: 0.9rem;
+        padding: 1rem;
+    }
+    
+    .stats-value {
+        font-size: 2rem;
+    }
+}
+
+/* Styles pour le modal */
+.modal-overlay {
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+}
+
+/* Animation pour le modal */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#signup-modal .glass-effect {
+    animation: modalFadeIn 0.3s ease forwards;
+}
+
+/* Style des inputs */
+.modal-input {
+    background: rgba(31, 41, 55, 0.8);
+    border: 1px solid rgba(75, 85, 99, 0.4);
+    transition: all 0.3s ease;
+}
+
+.modal-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+/* Animation du bouton submit */
+.submit-button {
+    position: relative;
+    overflow: hidden;
+}
+
+.submit-button::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    transition: 0.5s;
+}
+
+.submit-button:hover::after {
+    left: 100%;
+}

@@ -3,234 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ayoba Quiz</title>
+    <title>Ayoba Quiz - Testez vos connaissances</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="styles.css">
     <style>
-        .ayoba-button {
-            background-color: #4C1BB3;
+        :root {
+            --primary-color: #4F46E5;
+            --secondary-color: #7C3AED;
+            --accent-color: #F59E0B;
+            --background-color: #1F2937;
+            --text-color: #F3F4F6;
         }
-        .ayoba-button:hover {
-            background-color: #3D1690;
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
         }
-        .text-ayoba-blue {
-            color: #4C1BB3;
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        .text-ayoba-yellow {
-            color: #FFB800;
+
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            animation: particle 20s linear infinite;
         }
-        .bg-ayoba-blue {
-            background-color: #4C1BB3;
-        }
-        .bg-ayoba-yellow {
-            background-color: #FFB800;
-        }
-        .border-ayoba-blue {
-            border-color: #4C1BB3;
-        }
-        .border-ayoba-yellow {
-            border-color: #FFB800;
+
+        @keyframes particle {
+            0% {
+                transform: translateY(0);
+            }
+            100% {
+                transform: translateY(100vh);
+            }
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen p-4">
-    <div class="max-w-7xl mx-auto">
+<body class="font-sans antialiased">
+    <!-- Effet de particules -->
+    <div class="particles" id="particles"></div>
+
+    <div class="container mx-auto px-4 py-8">
         <!-- En-tête -->
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-ayoba-blue mb-2">Ayoba Quiz</h1>
-            <p class="text-gray-600">Testez vos connaissances et gagnez des récompenses !</p>
+        <header class="text-center mb-12 animate__animated animate__fadeIn">
+            <h1 class="text-5xl font-bold gradient-text mb-4">Ayoba Quiz</h1>
+            <p class="text-xl text-gray-400">Testez vos connaissances et gagnez des récompenses !</p>
         </header>
 
-        <!-- Contenu principal -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Colonne de gauche : Stats -->
-            <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <!-- Avatar et niveau -->
-                    <div class="text-center mb-6">
-                        <div class="relative inline-block">
-                            <div class="w-24 h-24 rounded-full bg-ayoba-blue bg-opacity-10 mx-auto mb-2 flex items-center justify-center">
-                                <span class="text-3xl">👤</span>
-                            </div>
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Section Stats -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Carte Stats -->
+                <div class="glass-effect rounded-2xl p-6">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="stats-card">
+                            <div class="stats-value" id="total-points">0</div>
+                            <div class="text-sm text-gray-400">Points</div>
                         </div>
-                        
-                        <!-- Barre de progression des récompenses -->
-                        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-                            <div class="flex justify-between items-center mb-4">
-                                <h2 class="text-xl font-bold text-ayoba-black">Récompenses</h2>
-                                <button id="rewards-info" class="text-gray-400 hover:text-ayoba-blue">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                </button>
-                            </div>
-
-                            <div class="relative pt-8 pb-4">
-                                <!-- Barre de progression -->
-                                <div class="h-4 bg-gray-100 rounded-full overflow-hidden relative">
-                                    <div id="rewards-progress-bar" class="h-full w-0 bg-gradient-to-r from-ayoba-blue to-ayoba-yellow transition-all duration-1000 ease-out"></div>
-                                </div>
-
-                                <!-- Marqueurs de récompenses -->
-                                <div id="reward-markers" class="absolute top-0 left-0 right-0 flex justify-between">
-                                    <div class="relative flex flex-col items-center group">
-                                        <div class="w-8 h-8 rounded-full border-4 border-white bg-white shadow-lg flex items-center justify-center transition-colors duration-300">
-                                            🥉
-                                        </div>
-                                        <div class="absolute bottom-full mb-2 w-32 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                            <div class="bg-black text-white text-xs rounded py-1 px-2">
-                                                Badge Bronze<br>100 points
-                                            </div>
-                                        </div>
-                                        <div class="absolute top-full mt-1 text-xs font-medium text-gray-500">100</div>
-                                    </div>
-
-                                    <div class="relative flex flex-col items-center group">
-                                        <div class="w-8 h-8 rounded-full border-4 border-white bg-white shadow-lg flex items-center justify-center transition-colors duration-300">
-                                            ⭐
-                                        </div>
-                                        <div class="absolute bottom-full mb-2 w-32 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                            <div class="bg-black text-white text-xs rounded py-1 px-2">
-                                                Accès Premium<br>250 points
-                                            </div>
-                                        </div>
-                                        <div class="absolute top-full mt-1 text-xs font-medium text-gray-500">250</div>
-                                    </div>
-
-                                    <div class="relative flex flex-col items-center group">
-                                        <div class="w-8 h-8 rounded-full border-4 border-white bg-white shadow-lg flex items-center justify-center transition-colors duration-300">
-                                            👑
-                                        </div>
-                                        <div class="absolute bottom-full mb-2 w-32 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                            <div class="bg-black text-white text-xs rounded py-1 px-2">
-                                                Contenu Exclusif<br>500 points
-                                            </div>
-                                        </div>
-                                        <div class="absolute top-full mt-1 text-xs font-medium text-gray-500">500</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Tooltip d'information -->
-                            <div id="rewards-tooltip" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl p-4 text-sm text-gray-600 z-10">
-                                <h3 class="font-bold text-ayoba-blue mb-2">Comment gagner des points ?</h3>
-                                <ul class="space-y-2">
-                                    <li class="flex items-center">
-                                        <span class="mr-2">✅</span>
-                                        Bonne réponse : +10 points
-                                    </li>
-                                    <li class="flex items-center">
-                                        <span class="mr-2">🎯</span>
-                                        Série de 3 bonnes réponses : +5 points bonus
-                                    </li>
-                                    <li class="flex items-center">
-                                        <span class="mr-2">⚡</span>
-                                        Réponse rapide (< 5s) : +2 points bonus
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Points -->
-                    <div class="text-center mb-6">
-                        <div id="points-display" class="relative mx-auto w-32 h-32">
-                            <div class="absolute inset-0 flex items-center justify-center">
-                                <div>
-                                    <div id="current-points" class="text-3xl font-bold text-ayoba-blue">0</div>
-                                    <div class="text-sm text-gray-600">points</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Statistiques -->
-                    <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div class="text-center p-3 bg-gray-50 rounded-lg">
-                            <div id="quizzes-played" class="text-xl font-bold text-ayoba-blue">0</div>
-                            <div class="text-sm text-gray-600">Quiz joués</div>
-                        </div>
-                        <div class="text-center p-3 bg-gray-50 rounded-lg">
-                            <div id="correct-answers" class="text-xl font-bold text-ayoba-blue">0</div>
-                            <div class="text-sm text-gray-600">Bonnes réponses</div>
-                        </div>
-                    </div>
-
-                    <!-- Succès -->
-                    <div class="mt-6">
-                        <h3 class="text-lg font-semibold text-ayoba-black mb-3">Succès débloqués</h3>
-                        <div id="achievements" class="grid grid-cols-3 gap-2">
-                            <!-- Les succès seront injectés ici -->
+                        <div class="stats-card">
+                            <div class="stats-value" id="correct-answers">0</div>
+                            <div class="text-sm text-gray-400">Bonnes réponses</div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Barre de progression -->
+                <div class="glass-effect rounded-2xl p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-200">Progression</h2>
+                        <span class="text-sm text-gray-400" id="rewards-progress-text">0/500 points</span>
+                    </div>
+
+                    <div class="relative mb-6">
+                        <div class="h-4 bg-gray-800 rounded-full overflow-hidden">
+                            <div id="rewards-progress-bar" 
+                                 class="h-full progress-bar"
+                                 style="width: 0%">
+                            </div>
+                        </div>
+                    </div>
+
+              
+                </div>
             </div>
 
-            <!-- Colonne centrale : Quiz -->
-            <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-lg p-6">
+            <!-- Section Quiz -->
+            <div class="lg:col-span-2">
+                <div class="glass-effect rounded-2xl p-8">
                     <!-- Progression -->
-                    <div class="mb-6">
-                        <div class="flex justify-between text-sm text-gray-600 mb-2">
-                            <span>Question <span id="current-question">1</span>/<span id="total-questions">10</span></span>
-                            <span id="timer" class="font-medium">00:00</span>
+                    <div class="flex items-center justify-between mb-8">
+                        <div class="text-gray-400">
+                            Question <span id="current-question" class="text-white font-bold">1</span>
+                            <span class="text-gray-600">/</span>
+                            <span id="total-questions" class="text-gray-400">10</span>
                         </div>
-                        <div class="h-2 bg-gray-200 rounded-full">
-                            <div id="progress-bar" class="h-full bg-ayoba-blue rounded-full transition-all duration-300" style="width: 0%"></div>
+                        <div class="w-48 h-2 bg-gray-800 rounded-full overflow-hidden">
+                            <div id="progress-bar" class="h-full progress-bar"></div>
                         </div>
                     </div>
 
                     <!-- Question -->
-                    <div id="question-container" class="mb-6 text-xl font-semibold text-ayoba-black">
-                        Chargement de la question...
+                    <div id="question-container" class="mb-8 text-2xl font-bold text-gray-200">
+                        <!-- La question sera injectée ici -->
                     </div>
 
                     <!-- Réponses -->
-                    <div id="answers-container" class="mb-6">
+                    <div id="answers-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Les réponses seront injectées ici -->
                     </div>
 
                     <!-- Bouton suivant -->
-                    <button id="next-question-btn" class="ayoba-button w-full text-white font-bold px-6 py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                        Suivant
-                    </button>
-                </div>
-            </div>
-
-            <!-- Colonne de droite : Récompenses -->
-            <div class="lg:col-span-1">
-                <!-- Section Récompenses -->
-                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold text-ayoba-black">Récompenses à Débloquer</h2>
-                        <div class="relative">
-                            <button id="rewards-info" class="text-ayoba-blue hover:text-ayoba-yellow transition-colors">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                            </button>
-                            <div id="rewards-tooltip" class="hidden absolute right-0 w-64 p-4 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 z-10">
-                                <p class="text-sm text-gray-600">
-                                    Gagnez des points en répondant correctement aux questions pour débloquer des récompenses exclusives !
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-     
-                </div>
-
-                <!-- Section Classement -->
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h2 class="text-xl font-bold text-ayoba-black mb-4">Classement</h2>
-                    <div id="leaderboard" class="space-y-3">
-                        <!-- Le classement sera injecté ici -->
+                    <div class="mt-8 text-center">
+                        <button id="next-question-btn" 
+                                class="px-8 py-3 rounded-xl font-semibold transform transition-all duration-300 hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none next-button"
+                                disabled>
+                            Question suivante
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Container pour les messages de feedback -->
+    <div id="feedback-container" class="fixed top-4 right-4 z-50"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="script.js"></script>
+    <script>
+        // Création des particules
+        function createParticles() {
+            const container = document.getElementById('particles');
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        // Initialisation des particules
+        createParticles();
+    </script>
 </body>
 </html>

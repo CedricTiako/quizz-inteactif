@@ -1,14 +1,14 @@
-const apiBaseUrl = 'http://localhost/quizz/api/index.php';
+const API_BASE_URL = 'https://ayoba-yamo-quizz.zen-apps.com/api/index.php';
 
 let currentQuestionIndex = 0;
-let userId = 1;
+let userId = 1; 
 let questions = [];
 let currentQuestion = null;
 let hasAnswered = false;
 let answeredQuestions = new Set();
 let userStats = null;
+let tickets = []; 
 
-// Configuration des récompenses
 const REWARDS = [
     { points: 100, name: 'Badge Bronze', icon: '🥉' },
     { points: 250, name: 'Accès Premium', icon: '⭐' },
@@ -17,381 +17,495 @@ const REWARDS = [
 
 const MAX_POINTS = REWARDS[REWARDS.length - 1].points;
 
-// Initialisation des éléments UI
-function initializeUI() {
-    // Initialiser les points
-    document.getElementById('current-points').textContent = '0';
-    document.getElementById('rewards-progress-bar').style.width = '0%';
-    
-    // Initialiser les tooltips
-    const rewardsInfo = document.getElementById('rewards-info');
-    const rewardsTooltip = document.getElementById('rewards-tooltip');
-    
-    if (rewardsInfo && rewardsTooltip) {
-        rewardsInfo.addEventListener('mouseover', () => {
-            rewardsTooltip.classList.remove('hidden');
-        });
-        
-        rewardsInfo.addEventListener('mouseout', () => {
-            rewardsTooltip.classList.add('hidden');
-        });
+// Fonction pour mélanger un tableau (algorithme de Fisher-Yates)
+function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
+    return shuffled;
+}
 
-    // Initialiser le bouton suivant
-    const nextButton = document.getElementById('next-question-btn');
-    if (nextButton) {
-        nextButton.disabled = true;
-        nextButton.addEventListener('click', () => {
-            currentQuestionIndex++;
-            showQuestion();
-        });
+async function initializeUI() {
+    console.log('Initializing UI...');
+    // Attendre que le DOM soit complètement chargé
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeUIHandler);
+    } else {
+        initializeUIHandler();
+    }
+}
+
+async function initializeUIHandler() {
+    console.log('Initializing UI handler...');
+    const totalPoints = document.getElementById('total-points');
+    const correctAnswers = document.getElementById('correct-answers');
+    const progressBar = document.getElementById('rewards-progress-bar');
+    const quizLoader = document.getElementById('quiz-loader');
+    const quizContent = document.getElementById('quiz-content');
+
+    if (totalPoints) totalPoints.textContent = '0';
+    if (correctAnswers) correctAnswers.textContent = '0';
+    if (progressBar) progressBar.style.width = '0%';
+    
+    try {
+        // Afficher le loader
+        if (quizLoader) quizLoader.classList.remove('hidden');
+        if (quizContent) quizContent.classList.add('hidden');
+        
+        // Charger les questions
+        await loadQuestions();
+        
+        // Cacher le loader et afficher le contenu
+        if (quizLoader) quizLoader.classList.add('hidden');
+        if (quizContent) quizContent.classList.remove('hidden');
+        
+        // Afficher la première question
+        console.log('Showing first question...65' );
+        showQuestion();
+
+    } catch (error) {
+        console.error('Erreur lors du chargement des questions:', error);
+        showFeedback('Erreur lors du chargement des questions. Veuillez réessayer.', 'error');
     }
 }
 
 async function loadAndDisplayStats() {
+    console.log('Loading user stats...');
     try {
-        const response = await axios.get(`${apiBaseUrl}?endpoint=user_stats&user_id=${userId}`);
-        userStats = response.data;
+        const response = await axios.get(`${API_BASE_URL}?endpoint=user_stats&user_id=${userId}`);
+        if (!response.ok) throw new Error('Failed to load user stats');
+        const data = await response.json();
+        console.log('User stats loaded:', data);
+        userStats = data;
+
+        const totalPointsElement = document.getElementById('total-points');
+        const correctAnswersElement = document.getElementById('correct-answers');
         
-        // Mettre à jour les statistiques affichées
-        document.getElementById('current-points').textContent = userStats.user_points;
-        document.getElementById('quizzes-played').textContent = userStats.total_quizzes;
-        document.getElementById('correct-answers').textContent = userStats.total_correct_answers;
-        
-        // Mettre à jour la barre de progression des récompenses
-        updateRewardsProgress(userStats.user_points);
-        
+        if (totalPointsElement) {
+            totalPointsElement.textContent = data.user.total_points_earned || 0;
+        }
+        if (correctAnswersElement) {
+            correctAnswersElement.textContent = data.user.total_correct_answers || 0;
+        }
+
+        updateRewardsProgress(data.user.total_points_earned || 0);
     } catch (error) {
-        console.error('Error loading stats:', error);
-        showError('Impossible de charger les statistiques.');
+        console.error('Error loading user stats:', error);
+        showFeedback('Erreur lors du chargement des statistiques', 'error');
     }
 }
 
 async function loadQuestions() {
+    console.log('Loading questions...');
     try {
-        console.log('Chargement des questions...');
-        const response = await axios.get(`${apiBaseUrl}?endpoint=questions`);
-        console.log('Questions reçues:', response.data);
-        questions = response.data;
+        const response = await fetch(`${API_BASE_URL}?endpoint=questions`);
+        if (!response.ok) throw new Error('Failed to load questions');
+        const data = await response.json();
+        console.log('Questions loaded:', data);
+        
+        // Map question_id to id
+        questions = data.map(q => ({
+            id: q.question_id,
+            question_text: q.question_text,
+            category_id: q.category_id,
+            level_id: q.level_id,
+            created_at: q.created_at
+        }));
+        return questions;
     } catch (error) {
         console.error('Error loading questions:', error);
-        showError('Impossible de charger les questions. Veuillez réessayer.');
+        showFeedback('Erreur lors du chargement des questions', 'error');
+        throw error;
     }
 }
 
 async function loadAnswers(questionId) {
     try {
-        console.log('Chargement des réponses pour la question:', questionId);
-        const response = await axios.get(`${apiBaseUrl}?endpoint=answers&question_id=${questionId}`);
-        console.log('Réponses reçues:', response.data);
-        return response.data;
+        const response = await axios.get(`https://ayoba-yamo-quizz.zen-apps.com/api/index.php?endpoint=answers&question_id=${questionId}`);
+        const answers = response.data;
+        const answersContainer = document.getElementById('answers-container');
+        answersContainer.innerHTML = ''; // Clear previous answers
+        
+        answers.forEach(answer => {
+            const answerButton = document.createElement('button');
+            answerButton.className = 'answer-button w-full text-left p-4';
+            answerButton.innerHTML = `
+                <div class="flex items-center">
+                    <span class="text-lg">${answer.answer_text}</span>
+                </div>
+            `;
+            
+            // Stocker si la réponse est correcte dans un attribut data
+            answerButton.dataset.correct = answer.is_correct;
+            console.log('answerButton.dataset.correct:', answer.is_correct);
+            
+            // Ajouter l'écouteur d'événement pour appeler handleAnswer au clic
+            answerButton.addEventListener('click', () => handleAnswer(answer.answer_id, answer.is_correct, answerButton));
+            answersContainer.appendChild(answerButton);
+        });
     } catch (error) {
-        console.error('Error loading answers:', error);
-        showError('Impossible de charger les réponses. Veuillez réessayer.');
+        console.error('Erreur lors du chargement des réponses:', error);
+    }
+}
+
+async function loadTickets() {
+    console.log('Loading tickets...');
+    try {
+        const response = await axios.get(`${API_BASE_URL}?endpoint=get_all_tickets`);
+        tickets = response.data;
+        console.log('Tickets loaded:', tickets);
+        return tickets;
+    } catch (error) {
+        console.error('Error loading tickets:', error);
+        showFeedback('Impossible de charger les récompenses', 'error');
         return [];
     }
 }
 
-function updateProgress() {
-    const progress = Math.round((currentQuestionIndex / questions.length) * 100);
-    document.getElementById('progress-bar').style.width = `${progress}%`;
+async function createUser(username, email, password) {
+    console.log('Creating user...');
+    try {
+        const response = await fetch(`${API_BASE_URL}?endpoint=users`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username,
+                email,
+                password
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Erreur lors de la création de l\'utilisateur');
+        }
+
+        const data = await response.json();
+        console.log('User created:', data);
+        showFeedback('Compte créé avec succès !', 'success');
+        return data;
+    } catch (error) {
+        console.error('Erreur:', error);
+        showFeedback('Erreur lors de la création du compte', 'error');
+        throw error;
+    }
 }
 
 async function showQuestion() {
-    console.log('Affichage de la question. Index actuel:', currentQuestionIndex);
-    console.log('Nombre total de questions:', questions.length);
-    
+    console.log('Showing question...');
     if (currentQuestionIndex < questions.length) {
-        hasAnswered = false;
         currentQuestion = questions[currentQuestionIndex];
         
-        console.log('Question actuelle:', currentQuestion);
-        
-        if (answeredQuestions.has(currentQuestion.question_id)) {
-            currentQuestionIndex++;
-            showQuestion();
+        // Check if currentQuestion has a valid id
+        if (!currentQuestion.id) {
+            console.error('showQuestion: currentQuestion.id is missing');
+            showFeedback('Erreur: ID de la question manquant', 'error');
             return;
         }
         
-        const questionContainer = document.getElementById('question-container');
-        const answersContainer = document.getElementById('answers-container');
-        
-        if (!questionContainer || !answersContainer) {
-            console.error('Conteneurs non trouvés:', {
-                questionContainer: !!questionContainer,
-                answersContainer: !!answersContainer
-            });
-            return;
-        }
-        
-        questionContainer.className = 'mb-6 text-xl font-semibold text-ayoba-black animate__animated animate__fadeIn';
-        questionContainer.innerText = currentQuestion.question_text;
-        
-        const answers = await loadAnswers(currentQuestion.question_id);
-        answersContainer.innerHTML = '';
-        answersContainer.className = 'mb-6';
-        
-        answers.forEach((answer, index) => {
-            const answerButton = document.createElement('button');
-            answerButton.className = 'answer-button block w-full text-left bg-white border-2 border-gray-200 hover:border-ayoba-blue p-4 my-3 rounded-xl transition-all duration-300 animate__animated animate__fadeIn';
-            answerButton.style.animationDelay = `${index * 0.1}s`;
-            answerButton.innerHTML = `
-                <div class="flex items-center">
-                    <div class="flex-grow">${answer.answer_text}</div>
-                    <div class="answer-dot hidden">
-                        <svg class="w-6 h-6 text-ayoba-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                    </div>
-                </div>
-            `;
-            
-            answerButton.addEventListener('click', () => handleAnswer(answer.answer_id, answer.is_correct, answerButton));
-            answersContainer.appendChild(answerButton);
-        });
-        
-        // Mettre à jour la progression
+        // Mise à jour de l'indicateur de progression
         document.getElementById('current-question').textContent = currentQuestionIndex + 1;
         document.getElementById('total-questions').textContent = questions.length;
-        updateProgress();
         
-        // Désactiver le bouton suivant jusqu'à ce qu'une réponse soit donnée
+        // Mise à jour de la barre de progression
+        const progressBar = document.getElementById('progress-bar');
+        const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+        progressBar.style.width = `${progress}%`;
+        
+        // Affichage de la question
+        const questionContainer = document.getElementById('question-container');
+        questionContainer.textContent = currentQuestion.question_text;
+        
+        // Affichage des réponses
+        const answersContainer = document.getElementById('answers-container');
+        answersContainer.innerHTML = '';
+        
+        try {
+            // Load answers for the current question
+            const answers = await loadAnswers(currentQuestion.id);
+            
+            // Mélanger les réponses
+            const shuffledAnswers = shuffleArray(answers);
+            
+            shuffledAnswers.forEach(answer => {
+                const answerButton = document.createElement('button');
+                answerButton.className = 'answer-button w-full text-left p-4';
+                answerButton.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="text-lg">${answer.answer_text}</span>
+                    </div>
+                `;
+                
+                // Stocker si la réponse est correcte dans un attribut data
+                answerButton.dataset.correct = answer.is_correct;
+                console.log('answerButton.dataset.correct:', answer.is_correct);
+                
+                // Ajouter l'écouteur d'événement pour appeler handleAnswer au clic
+               answerButton.addEventListener('click', () => handleAnswer(answer.answer_id, answer.is_correct, answerButton));
+                answersContainer.appendChild(answerButton);
+            });
+        } catch (error) {
+            console.error('Error loading answers:', error);
+            showFeedback('Impossible de charger les réponses', 'error');
+        }
+        
+        // Réinitialiser l'état
+        hasAnswered = false;
         const nextButton = document.getElementById('next-question-btn');
         if (nextButton) {
             nextButton.disabled = true;
+            nextButton.classList.remove('hover:scale-105');
         }
     } else {
         showQuizComplete();
     }
 }
 
-async function handleAnswer(answerId, isCorrect, buttonElement) {
+// Gestion des réponses
+function handleAnswer(answerId, isCorrect, button) {
+    console.log('Answer selected:', answerId, 'Correct:', isCorrect);
     if (hasAnswered) return;
     hasAnswered = true;
     
-    answeredQuestions.add(currentQuestion.question_id);
+    const buttons = document.querySelectorAll('.answer-button');
+    buttons.forEach(btn => btn.classList.remove('selected'));
+    button.classList.add('selected');
     
-    try {
-        const response = await axios.post(`${apiBaseUrl}?endpoint=submit_answer`, {
-            user_id: userId,
-            question_id: currentQuestion.question_id,
-            answer_id: answerId
+    // Animation de sélection
+    button.classList.add('animate__animated', 'animate__pulse');
+    
+    setTimeout(() => {
+        buttons.forEach(btn => {
+            if (btn.dataset.correct === "1") {
+                btn.classList.add('correct', 'animate__animated', 'animate__bounceIn');
+            } else if (btn === button && !isCorrect) {
+                btn.classList.add('wrong', 'animate__animated', 'animate__shakeX');
+            }
         });
         
-        const result = response.data;
-        
-        document.querySelectorAll('.answer-button').forEach(button => {
-            button.classList.add('opacity-50');
-            button.classList.remove('hover:border-ayoba-blue');
-            button.disabled = true;
-        });
-        
-        if (result.is_correct) {
-            buttonElement.className = 'answer-button block w-full text-left bg-blue-50 border-2 border-ayoba-blue p-4 my-3 rounded-xl animate__animated animate__pulse';
-            buttonElement.querySelector('.answer-dot').classList.remove('hidden');
-            showFeedback(`
-                <div class="flex items-center justify-center">
-                    <svg class="w-6 h-6 text-ayoba-blue mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    <span>Bravo ! +${result.points_awarded} points</span>
-                </div>
-            `, 'success');
+        // Afficher le feedback et mettre à jour le score
+        if (isCorrect) {
+            showFeedback('Bonne réponse ! 🎉');
+            createConfetti();
+            updateScore(10); // +10 points pour une bonne réponse
             
-            const pointsAnimation = document.createElement('div');
-            pointsAnimation.className = 'fixed text-2xl font-bold text-ayoba-blue animate__animated animate__fadeOutUp';
-            pointsAnimation.style.left = `${buttonElement.offsetLeft + buttonElement.offsetWidth / 2}px`;
-            pointsAnimation.style.top = `${buttonElement.offsetTop}px`;
-            pointsAnimation.textContent = `+${result.points_awarded}`;
-            document.body.appendChild(pointsAnimation);
-            setTimeout(() => pointsAnimation.remove(), 1000);
-            
-            await loadAndDisplayStats();
-            updateRewardsProgress(result.total_points);
+            // Incrémenter le compteur de bonnes réponses
+            const correctAnswers = document.getElementById('correct-answers');
+            correctAnswers.textContent = parseInt(correctAnswers.textContent) + 1;
         } else {
-            buttonElement.className = 'answer-button block w-full text-left bg-red-50 border-2 border-red-500 p-4 my-3 rounded-xl animate__animated animate__shakeX';
-            showFeedback(`
-                <div class="flex items-center justify-center">
-                    <svg class="w-6 h-6 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                    <span>Incorrect. -1 point</span>
-                </div>
-            `, 'error');
-            await loadAndDisplayStats();
+            showFeedback('Mauvaise réponse 😕', 'error');
+            updateScore(-1); // -1 point pour une mauvaise réponse
         }
         
+        // Activer le bouton suivant
         const nextButton = document.getElementById('next-question-btn');
         if (nextButton) {
             nextButton.disabled = false;
-            nextButton.classList.add('animate__animated', 'animate__pulse');
+            nextButton.classList.add('animate__animated', 'animate__bounceIn');
+            nextButton.addEventListener('click', () => {
+                currentQuestionIndex++;
+                console.log('Showing next question... 319');
+                showQuestion();
+            }, { once: true });
         }
-        
-    } catch (error) {
-        console.error('Error submitting answer:', error);
-        showError('Erreur lors de la soumission de la réponse.');
-    }
-}
-
-function showFeedback(message, type = 'info') {
-    const feedbackContainer = document.createElement('div');
-    feedbackContainer.className = `fixed top-4 left-1/2 transform -translate-x-1/2 p-4 rounded-lg shadow-lg animate__animated animate__fadeInDown ${
-        type === 'success' ? 'bg-green-100 text-green-800' :
-        type === 'error' ? 'bg-red-100 text-red-800' :
-        'bg-blue-100 text-blue-800'
-    }`;
-    feedbackContainer.innerHTML = message;
-    document.body.appendChild(feedbackContainer);
-    setTimeout(() => {
-        feedbackContainer.classList.replace('animate__fadeInDown', 'animate__fadeOutUp');
-        setTimeout(() => feedbackContainer.remove(), 500);
-    }, 2000);
-}
-
-function showError(message) {
-    showFeedback(message, 'error');
+    }, 1000);
 }
 
 function showQuizComplete() {
-    const container = document.querySelector('.lg\\:col-span-1:nth-child(2) > div');
+    console.log('Showing quiz complete...');
+    const container = document.querySelector('.lg\\:col-span-2 > div');
     if (container) {
         container.innerHTML = `
-            <div class="text-center py-8">
-                <div class="text-6xl mb-4">🎉</div>
-                <h2 class="text-2xl font-bold text-ayoba-blue mb-4">Quiz terminé !</h2>
-                <p class="text-gray-600 mb-6">Félicitations ! Vous avez répondu à toutes les questions.</p>
-                <button onclick="location.reload()" class="ayoba-button text-white px-6 py-3 rounded-lg">
+            <div class="text-center py-12 animate__animated animate__fadeIn">
+                <div class="text-6xl mb-8 animate__animated animate__bounceIn">🎉</div>
+                <h2 class="text-3xl font-bold gradient-text mb-4">Quiz Terminé !</h2>
+                <p class="text-gray-600 mb-8">Félicitations ! Vous avez complété toutes les questions.</p>
+                <button onclick="location.reload()" 
+                        class="bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-xl font-semibold 
+                        transform transition-all duration-300 hover:scale-105 hover:shadow-lg">
                     Recommencer
                 </button>
             </div>
         `;
+        
+        createConfetti();
     }
 }
 
-function updateRewardsProgress(currentPoints) {
-    const progressBar = document.getElementById('rewards-progress-bar');
-    const progressPercentage = Math.min((currentPoints / MAX_POINTS) * 100, 100);
-    
-    // Animation fluide de la barre de progression
-    progressBar.style.width = `${progressPercentage}%`;
-    
-    // Mise à jour des marqueurs de récompenses
-    REWARDS.forEach((reward, index) => {
-        const marker = document.querySelector(`#reward-markers > div:nth-child(${index + 1})`);
-        const icon = marker.querySelector('div:first-child');
-        
-        if (currentPoints >= reward.points) {
-            // Récompense débloquée
-            icon.classList.add('bg-ayoba-yellow', 'scale-110');
-            icon.classList.remove('bg-white');
-            
-            // Ajouter une animation de pulse
-            if (!icon.classList.contains('animate__animated')) {
-                icon.classList.add('animate__animated', 'animate__pulse');
-            }
-            
-            // Animation spéciale si c'est une nouvelle récompense
-            if (currentPoints === reward.points) {
-                showRewardUnlocked(reward);
-            }
-        } else {
-            // Récompense non débloquée
-            icon.classList.remove('bg-ayoba-yellow', 'scale-110', 'animate__animated', 'animate__pulse');
-            icon.classList.add('bg-white');
-        }
-        
-        // Ajouter une classe pour les récompenses presque débloquées
-        const closeToUnlock = currentPoints >= (reward.points * 0.8);
-        if (closeToUnlock && !icon.classList.contains('bg-ayoba-yellow')) {
-            icon.classList.add('animate__animated', 'animate__headShake');
-            setTimeout(() => {
-                icon.classList.remove('animate__animated', 'animate__headShake');
-            }, 1000);
-        }
-    });
-}
-
-function showRewardUnlocked(reward) {
-    const rewardModal = document.createElement('div');
-    rewardModal.className = 'fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 animate__animated animate__fadeIn';
-    rewardModal.innerHTML = `
-        <div class="bg-white rounded-xl p-8 text-center max-w-md mx-auto animate__animated animate__zoomIn">
-            <div class="text-6xl mb-4 animate__animated animate__bounceIn">${reward.icon}</div>
-            <div class="relative">
-                <div class="absolute inset-0 flex items-center">
-                    <div class="w-full border-t border-gray-200"></div>
-                </div>
-                <div class="relative flex justify-center">
-                    <span class="bg-white px-4 text-sm text-gray-500">NOUVELLE RÉCOMPENSE</span>
-                </div>
-            </div>
-            <h2 class="text-2xl font-bold text-ayoba-blue mt-4 mb-2">${reward.name}</h2>
-            <div class="text-ayoba-yellow text-4xl font-bold mb-4">${reward.points} points</div>
-            <p class="text-gray-600 mb-6">Félicitations ! Continuez comme ça pour débloquer plus de récompenses.</p>
-            <button class="ayoba-button text-white px-8 py-3 rounded-lg transform transition-transform hover:scale-105">
-                Continuer
-            </button>
-        </div>
-    `;
-    document.body.appendChild(rewardModal);
-    
-    // Ajouter des confettis
+function createConfetti() {
+    console.log('Creating confetti...');
     const confetti = document.createElement('div');
     confetti.className = 'fixed inset-0 pointer-events-none z-50';
-    for (let i = 0; i < 50; i++) {
+    
+    for (let i = 0; i < 100; i++) {
         const particle = document.createElement('div');
         particle.className = 'absolute w-2 h-2 rounded-full';
-        particle.style.backgroundColor = ['#FFD700', '#4299E1', '#48BB78'][Math.floor(Math.random() * 3)];
+        particle.style.backgroundColor = ['#4F46E5', '#7C3AED', '#F59E0B'][Math.floor(Math.random() * 3)];
         particle.style.left = Math.random() * 100 + 'vw';
         particle.style.top = '-10px';
         particle.style.transform = `rotate(${Math.random() * 360}deg)`;
         particle.style.animation = `fall ${1 + Math.random() * 2}s linear forwards`;
         confetti.appendChild(particle);
     }
+    
     document.body.appendChild(confetti);
-    
-    // Ajouter le style pour l'animation des confettis
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes fall {
-            to {
-                transform: translateY(100vh) rotate(960deg);
-            }
-        }
-    `;
-    document.head.appendChild(style);
-    
-    rewardModal.querySelector('button').onclick = () => {
-        rewardModal.classList.replace('animate__fadeIn', 'animate__fadeOut');
-        confetti.remove();
-        setTimeout(() => {
-            rewardModal.remove();
-            style.remove();
-        }, 500);
-    };
-    
-    // Retirer automatiquement après 5 secondes
-    setTimeout(() => {
-        if (document.body.contains(rewardModal)) {
-            rewardModal.classList.replace('animate__fadeIn', 'animate__fadeOut');
-            confetti.remove();
-            setTimeout(() => {
-                rewardModal.remove();
-                style.remove();
-            }, 500);
-        }
-    }, 5000);
+    setTimeout(() => confetti.remove(), 3000);
 }
 
-// Chargement initial
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        initializeUI();
-        await loadQuestions();
-        await loadAndDisplayStats();
-        showQuestion();
-    } catch (error) {
-        console.error('Error during initialization:', error);
-        showError('Une erreur est survenue lors de l\'initialisation du quiz.');
+function showFeedback(message, type = 'info') {
+    console.log('Showing feedback:', message);
+    const feedbackContainer = document.getElementById('feedback-container');
+    const feedback = document.createElement('div');
+    feedback.className = `feedback ${type}`;
+    feedback.textContent = message;
+    
+    feedbackContainer.appendChild(feedback);
+    
+    setTimeout(() => {
+        feedback.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            feedbackContainer.removeChild(feedback);
+        }, 300);
+    }, 3000);
+}
+
+function updateScore(points) {
+    console.log('Updating score by:', points);
+    if (points === 0) {
+        console.warn('No points to update');
+        return;
     }
+    const totalPoints = document.getElementById('total-points');
+    const currentPoints = parseInt(totalPoints.textContent);
+    const newPoints = Math.max(0, currentPoints + points); // Empêcher le score d'aller en dessous de 0
+    
+    // Animation du score
+    let count = currentPoints;
+    const duration = 1000;
+    const step = points / (duration / 16);
+    
+    function updateCounter() {
+        count += step;
+        if ((step > 0 && count >= newPoints) || (step < 0 && count <= newPoints)) {
+            count = newPoints;
+            totalPoints.textContent = Math.round(count);
+            return;
+        }
+        totalPoints.textContent = Math.round(count);
+        requestAnimationFrame(updateCounter);
+    }
+    
+    requestAnimationFrame(updateCounter);
+    
+    // Mise à jour de la barre de progression
+    const progressBar = document.getElementById('rewards-progress-bar');
+    const percentage = (newPoints / MAX_POINTS) * 100;
+    progressBar.style.width = percentage + '%';
+    
+    // Mise à jour du texte de progression
+    const progressText = document.getElementById('rewards-progress-text');
+    progressText.textContent = `${newPoints}/${MAX_POINTS} points`;
+    
+    // Effet visuel pour les points perdus
+    if (points < 0) {
+        const pointsLost = document.createElement('div');
+        pointsLost.className = 'points-lost animate__animated animate__fadeOutUp';
+        pointsLost.textContent = points;
+        document.body.appendChild(pointsLost);
+        
+        setTimeout(() => {
+            document.body.removeChild(pointsLost);
+        }, 1000);
+    }
+}
+
+function updateRewardsProgress(currentPoints) {
+    console.log('Updating rewards progress...');
+    const progressBar = document.getElementById('rewards-progress-bar');
+    const progressText = document.getElementById('rewards-progress-text');
+    const rewardsContainer = document.getElementById('rewards-container');
+    
+    if (!progressBar || !progressText || !rewardsContainer || !tickets.length) return;
+
+    const sortedTickets = [...tickets].sort((a, b) => a.points_required - b.points_required);
+    
+    const currentTicket = sortedTickets.filter(t => currentPoints >= t.points_required).pop() || sortedTickets[0];
+    const nextTicketIndex = sortedTickets.findIndex(t => t.id === currentTicket.id) + 1;
+    const nextTicket = nextTicketIndex < sortedTickets.length ? sortedTickets[nextTicketIndex] : null;
+    
+    let progressPercentage;
+    if (!nextTicket) {
+        progressPercentage = 100;
+    } else {
+        const previousTicketPoints = currentTicket.points_required;
+        const pointsInCurrentLevel = currentPoints - previousTicketPoints;
+        const pointsNeededForNextLevel = nextTicket.points_required - previousTicketPoints;
+        progressPercentage = Math.min((pointsInCurrentLevel / pointsNeededForNextLevel) * 100, 100);
+    }
+
+    progressBar.style.width = `${progressPercentage}%`;
+    
+    if (!nextTicket) {
+        progressText.textContent = `Niveau Maximum Atteint! (${currentPoints} points)`;
+    } else {
+        const pointsNeeded = nextTicket.points_required - currentPoints;
+        progressText.textContent = `${pointsNeeded} points pour ${nextTicket.name}`;
+    }
+
+    rewardsContainer.innerHTML = sortedTickets.map(ticket => `
+        <div class="reward-item ${currentPoints >= ticket.points_required ? 'opacity-100' : 'opacity-50'} 
+                    flex items-center space-x-2 p-2 rounded-lg transition-all duration-300">
+            <span class="text-2xl">${getTicketIcon(ticket.name)}</span>
+            <div class="flex flex-col">
+                <span class="font-semibold">${ticket.name}</span>
+                <span class="text-sm text-gray-500">${ticket.points_required} pts</span>
+            </div>
+        </div>
+    `).join('');
+
+    progressBar.style.transition = 'width 1s ease-in-out';
+}
+
+function getTicketIcon(ticketName) {
+    const icons = {
+        'Bronze': '🥉',
+        'Argent': '🥈',
+        'Or': '🥇',
+        'Platine': '💎',
+        'Diamant': '💫',
+    };
+    return icons[ticketName] || '🎫';
+}
+
+async function loadRewards() {
+    try {
+        const response = await axios.get('https://ayoba-yamo-quizz.zen-apps.com/api/index.php/?endpoint=get_all_tickets');
+        const rewards = response.data;
+        const rewardsContainer = document.getElementById('rewards-container');
+        rewardsContainer.innerHTML = ''; // Clear previous rewards
+        
+        rewards.forEach(reward => {
+            const rewardElement = document.createElement('div');
+            rewardElement.className = 'reward-item p-4 border-b';
+            rewardElement.innerHTML = `
+                <h3 class="text-xl font-bold">${reward.name}</h3>
+                <p>Points Required: ${reward.points_required}</p>
+                <p>Reward: ${reward.reward}</p>
+                <p>Quantity: ${reward.quantity}</p>
+                <p>Expiration Date: ${reward.expiration_date || 'No expiration'}</p>
+            `;
+            rewardsContainer.appendChild(rewardElement);
+        });
+    } catch (error) {
+        console.error('Erreur lors du chargement des récompenses:', error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Document loaded...');
+    initializeUI();
+   // loadRewards();
 });
