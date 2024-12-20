@@ -47,13 +47,14 @@ switch ($endpoint) {
             $db = getDatabaseConnection();
             $db->beginTransaction();
             try {
-                // Fetch all questions
-                $questions = $db->read('questions');
+                // Fetch questions in random order using custom query
+                $questions = $db->executeCustomQuery("SELECT * FROM questions ORDER BY RAND()");
                 $db->commit();
                 sendResponse($questions);
             } catch (Exception $e) {
                 $db->rollback();
-                sendResponse(["error" => "Failed to fetch questions: " . $e->getMessage()], 500);
+                $db->logError("Failed to fetch questions: " . $e->getMessage());
+                sendResponse(["error" => "Failed to fetch questions"], 500);
             }
         } elseif ($method === 'POST') {
             $db = getDatabaseConnection();
@@ -263,6 +264,24 @@ switch ($endpoint) {
         }
         break;
 
+    case 'leaderboard':
+        try {
+            $db = getDatabaseConnection();
+            $db->beginTransaction();
+            $query = "SELECT u.username, s.total_points_earned as points 
+                     FROM users u 
+                     JOIN statistics s ON u.user_id = s.user_id 
+                     ORDER BY s.total_points_earned DESC 
+                     LIMIT 5";
+            $result = $db->executeCustomQuery($query);
+            $db->commit();
+            sendResponse($result);
+        } catch (Exception $e) {
+            $db->rollback();
+            sendResponse(["error" => "Failed to fetch leaderboard: " . $e->getMessage()], 500);
+        }
+        break;
+
     case 'user_stats':
         if ($method === 'GET') {
             if (!isset($_GET['user_id'])) {
@@ -297,6 +316,223 @@ switch ($endpoint) {
             } catch (Exception $e) {
                 $db->rollback();
                 sendResponse(["error" => "Failed to fetch user stats: " . $e->getMessage()], 500);
+            }
+        }
+        break;
+
+    case 'user_level':
+        if ($method === 'GET') {
+            if (!isset($_GET['user_id'])) {
+                sendResponse(['error' => 'User ID is required'], 400);
+                break;
+            }
+            try {
+                $db = getDatabaseConnection();
+                $db->beginTransaction();
+                
+                // Récupérer ou créer le niveau de l'utilisateur
+                $query = "SELECT level, xp FROM user_levels WHERE user_id = :user_id";
+                $result = $db->executeCustomQuery($query, ['user_id' => $_GET['user_id']]);
+                
+                if (empty($result)) {
+                    // Créer une entrée par défaut
+                    $query = "INSERT INTO user_levels (user_id, level, xp) VALUES (:user_id, 1, 0)";
+                    $db->executeCustomQuery($query, ['user_id' => $_GET['user_id']]);
+                    $result = [['level' => 1, 'xp' => 0]];
+                }
+                
+                $db->commit();
+                sendResponse(['level' => $result[0]['level'], 'xp' => $result[0]['xp']]);
+            } catch (Exception $e) {
+                $db->rollback();
+                sendResponse(['error' => 'Failed to fetch user level: ' . $e->getMessage()], 500);
+            }
+        } elseif ($method === 'POST') {
+            $data = json_decode(file_get_contents('php://input'), true);
+            if (!isset($data['user_id']) || !isset($data['xp'])) {
+                sendResponse(['error' => 'User ID and XP are required'], 400);
+                break;
+            }
+            
+            try {
+                $db = getDatabaseConnection();
+                $db->beginTransaction();
+                
+                // Mettre à jour l'XP et le niveau
+                $query = "INSERT INTO user_levels (user_id, level, xp) 
+                         VALUES (:user_id, 1, :xp)
+                         ON DUPLICATE KEY UPDATE 
+                         xp = xp + :xp,
+                         level = FLOOR((xp + :xp) / 100) + 1";
+                
+                $db->executeCustomQuery($query, [
+                    'user_id' => $data['user_id'],
+                    'xp' => $data['xp']
+                ]);
+                
+                // Récupérer les nouvelles valeurs
+                $query = "SELECT level, xp FROM user_levels WHERE user_id = :user_id";
+                $result = $db->executeCustomQuery($query, ['user_id' => $data['user_id']]);
+                
+                $db->commit();
+                sendResponse([
+                    'level' => $result[0]['level'],
+                    'xp' => $result[0]['xp'],
+                    'message' => 'XP updated successfully'
+                ]);
+            } catch (Exception $e) {
+                $db->rollback();
+                sendResponse(['error' => 'Failed to update XP: ' . $e->getMessage()], 500);
+            }
+        }
+        break;
+
+    case 'achievements':
+        if ($method === 'GET') {
+            if (!isset($_GET['user_id'])) {
+                sendResponse(['error' => 'User ID is required'], 400);
+                break;
+            }
+            
+            try {
+                $db = getDatabaseConnection();
+                $db->beginTransaction();
+                
+                // Récupérer tous les succès avec leur statut pour l'utilisateur
+                $query = "SELECT 
+                            a.*,
+                            CASE WHEN ua.user_id IS NOT NULL THEN 1 ELSE 0 END as unlocked,
+                            ua.unlocked_at
+                         FROM achievements a
+                         LEFT JOIN user_achievements ua ON a.achievement_id = ua.achievement_id 
+                            AND ua.user_id = :user_id
+                         ORDER BY a.achievement_id";
+                
+                $achievements = $db->executeCustomQuery($query, ['user_id' => $_GET['user_id']]);
+                
+                $db->commit();
+                sendResponse(['achievements' => $achievements]);
+            } catch (Exception $e) {
+                $db->rollback();
+                sendResponse(['error' => 'Failed to fetch achievements: ' . $e->getMessage()], 500);
+            }
+        } elseif ($method === 'POST') {
+            $data = json_decode(file_get_contents('php://input'), true);
+            if (!isset($data['user_id']) || !isset($data['achievement_id'])) {
+                sendResponse(['error' => 'User ID and Achievement ID are required'], 400);
+                break;
+            }
+            
+            try {
+                $db = getDatabaseConnection();
+                $db->beginTransaction();
+                
+                // Vérifier si l'utilisateur a déjà débloqué ce succès
+                $query = "SELECT * FROM user_achievements 
+                         WHERE user_id = :user_id AND achievement_id = :achievement_id";
+                $existing = $db->executeCustomQuery($query, [
+                    'user_id' => $data['user_id'],
+                    'achievement_id' => $data['achievement_id']
+                ]);
+                
+                if (empty($existing)) {
+                    // Débloquer le succès
+                    $query = "INSERT INTO user_achievements (user_id, achievement_id)
+                             VALUES (:user_id, :achievement_id)";
+                    $db->executeCustomQuery($query, [
+                        'user_id' => $data['user_id'],
+                        'achievement_id' => $data['achievement_id']
+                    ]);
+                    
+                    $message = 'Achievement unlocked successfully';
+                } else {
+                    $message = 'Achievement already unlocked';
+                }
+                
+                $db->commit();
+                sendResponse(['message' => $message]);
+            } catch (Exception $e) {
+                $db->rollback();
+                sendResponse(['error' => 'Failed to unlock achievement: ' . $e->getMessage()], 500);
+            }
+        }
+        break;
+
+    case 'check_achievements':
+        if ($method === 'POST') {
+            $data = json_decode(file_get_contents('php://input'), true);
+            if (!isset($data['user_id'])) {
+                sendResponse(['error' => 'User ID is required'], 400);
+                break;
+            }
+            
+            try {
+                $db = getDatabaseConnection();
+                $db->beginTransaction();
+                
+                // Récupérer les statistiques de l'utilisateur
+                $query = "SELECT * FROM statistics WHERE user_id = :user_id";
+                $stats = $db->executeCustomQuery($query, ['user_id' => $data['user_id']]);
+                
+                if (empty($stats)) {
+                    throw new Exception('User statistics not found');
+                }
+                
+                $stats = $stats[0];
+                
+                // Vérifier chaque type de succès
+                $newAchievements = [];
+                
+                // Succès basés sur les bonnes réponses
+                $query = "SELECT * FROM achievements 
+                         WHERE condition_type = 'correct_answers' 
+                         AND condition_value <= :correct_answers
+                         AND achievement_id NOT IN (
+                             SELECT achievement_id FROM user_achievements 
+                             WHERE user_id = :user_id
+                         )";
+                $achievements = $db->executeCustomQuery($query, [
+                    'correct_answers' => $stats['total_correct_answers'],
+                    'user_id' => $data['user_id']
+                ]);
+                
+                foreach ($achievements as $achievement) {
+                    $newAchievements[] = $achievement;
+                    $db->executeCustomQuery(
+                        "INSERT INTO user_achievements (user_id, achievement_id) VALUES (:user_id, :achievement_id)",
+                        ['user_id' => $data['user_id'], 'achievement_id' => $achievement['achievement_id']]
+                    );
+                }
+                
+                // Succès basés sur les points
+                $query = "SELECT * FROM achievements 
+                         WHERE condition_type = 'points' 
+                         AND condition_value <= :points
+                         AND achievement_id NOT IN (
+                             SELECT achievement_id FROM user_achievements 
+                             WHERE user_id = :user_id
+                         )";
+                $achievements = $db->executeCustomQuery($query, [
+                    'points' => $stats['total_points_earned'],
+                    'user_id' => $data['user_id']
+                ]);
+                
+                foreach ($achievements as $achievement) {
+                    $newAchievements[] = $achievement;
+                    $db->executeCustomQuery(
+                        "INSERT INTO user_achievements (user_id, achievement_id) VALUES (:user_id, :achievement_id)",
+                        ['user_id' => $data['user_id'], 'achievement_id' => $achievement['achievement_id']]
+                    );
+                }
+                
+                $db->commit();
+                sendResponse([
+                    'message' => 'Achievements checked successfully',
+                    'new_achievements' => $newAchievements
+                ]);
+            } catch (Exception $e) {
+                $db->rollback();
+                sendResponse(['error' => 'Failed to check achievements: ' . $e->getMessage()], 500);
             }
         }
         break;

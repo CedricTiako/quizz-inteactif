@@ -11,10 +11,10 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */
-/*!40101 SET NAMES utf8mb4 */
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
 
 --
 -- Base de données : `ayoba-yamo-quizz`
@@ -112,6 +112,7 @@ CREATE TABLE `questions` (
   `category_id` int(11) NOT NULL,
   `level_id` int(11) NOT NULL,
   `question_text` text NOT NULL,
+  `points` int(11) NOT NULL DEFAULT 10,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
@@ -119,11 +120,11 @@ CREATE TABLE `questions` (
 -- Déchargement des données de la table `questions`
 --
 
-INSERT INTO `questions` (`question_id`, `category_id`, `level_id`, `question_text`, `created_at`) VALUES
-(1, 1, 1, 'What is the capital of France?', '2024-12-19 17:47:53'),
-(2, 1, 1, 'Which planet is known as the Red Planet?', '2024-12-19 17:47:53'),
-(3, 1, 2, 'Who painted the Mona Lisa?', '2024-12-19 17:47:53'),
-(4, 1, 3, 'What is the chemical symbol for gold?', '2024-12-19 17:47:53');
+INSERT INTO `questions` (`question_id`, `category_id`, `level_id`, `question_text`, `points`, `created_at`) VALUES
+(1, 1, 1, 'Quelle est la capitale de la France ?', 10, '2024-12-19 17:47:53'),
+(2, 2, 2, 'Quelle planète est surnommée la planète rouge ?', 20, '2024-12-19 17:47:53'),
+(3, 3, 1, 'Qui a peint la Joconde ?', 10, '2024-12-19 17:47:53'),
+(4, 2, 3, 'Quel est le symbole chimique de l\'or ?', 30, '2024-12-19 17:47:53');
 
 -- --------------------------------------------------------
 
@@ -132,19 +133,13 @@ INSERT INTO `questions` (`question_id`, `category_id`, `level_id`, `question_tex
 --
 
 CREATE TABLE `statistics` (
-  `stat_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
-  `total_quizzes_played` int(11) DEFAULT 0,
-  `total_correct_answers` int(11) DEFAULT 0,
-  `total_points_earned` int(11) DEFAULT 0
+  `total_points_earned` int(11) NOT NULL DEFAULT 0,
+  `total_questions_answered` int(11) NOT NULL DEFAULT 0,
+  `total_correct_answers` int(11) NOT NULL DEFAULT 0,
+  `average_response_time` float DEFAULT NULL,
+  `last_activity` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
---
--- Déchargement des données de la table `statistics`
---
-
-INSERT INTO `statistics` (`stat_id`, `user_id`, `total_quizzes_played`, `total_correct_answers`, `total_points_earned`) VALUES
-(1, 1, 5, 3, 50);
 
 -- --------------------------------------------------------
 
@@ -156,8 +151,8 @@ CREATE TABLE `tickets` (
   `ticket_id` int(11) NOT NULL,
   `name` varchar(50) NOT NULL,
   `points_required` int(11) NOT NULL,
-  `reward` varchar(100) NOT NULL,
-  `quantity` int(11) NOT NULL DEFAULT 0,
+  `reward` varchar(255) NOT NULL,
+  `quantity` int(11) DEFAULT NULL,
   `expiration_date` date DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
@@ -174,38 +169,15 @@ INSERT INTO `tickets` (`ticket_id`, `name`, `points_required`, `reward`, `quanti
 -- --------------------------------------------------------
 
 --
--- Structure de la table `users`
---
-
-CREATE TABLE `users` (
-  `user_id` int(11) NOT NULL,
-  `username` varchar(50) NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `password_hash` varchar(255) NOT NULL,
-  `points` int(11) DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
---
--- Déchargement des données de la table `users`
---
-
-INSERT INTO `users` (`user_id`, `username`, `email`, `password_hash`, `points`, `created_at`) VALUES
-(1, 'test_user', 'test@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 0, '2024-12-19 17:47:53'),
-(2, 'test_user2', 'test2@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 100, '2024-12-19 17:47:53');
-
--- --------------------------------------------------------
-
---
 -- Structure de la table `user_activity`
 --
 
 CREATE TABLE `user_activity` (
   `activity_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
-  `activity_type` varchar(50) NOT NULL,
-  `activity_data` text DEFAULT NULL,
-  `activity_time` timestamp NOT NULL DEFAULT current_timestamp()
+  `activity_type` enum('quiz_start','quiz_complete','reward_claimed') NOT NULL,
+  `details` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- --------------------------------------------------------
@@ -220,22 +192,24 @@ CREATE TABLE `user_answers` (
   `question_id` int(11) NOT NULL,
   `answer_id` int(11) NOT NULL,
   `is_correct` tinyint(1) NOT NULL,
-  `points_awarded` int(11) DEFAULT 0,
+  `response_time` int(11) DEFAULT NULL,
+  `points_earned` int(11) NOT NULL DEFAULT 0,
   `answered_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
+-- --------------------------------------------------------
+
 --
--- Déchargement des données de la table `user_answers`
+-- Structure de la table `users`
 --
 
-INSERT INTO `user_answers` (`user_answer_id`, `user_id`, `question_id`, `answer_id`, `is_correct`, `points_awarded`, `answered_at`) VALUES
-(1, 1, 1, 2, 0, -1, '2024-12-20 12:02:57'),
-(2, 1, 1, 1, 1, 10, '2024-12-20 12:03:04'),
-(3, 1, 1, 3, 0, 0, '2024-12-20 13:02:33'),
-(4, 1, 1, 1, 1, 10, '2024-12-20 13:09:48'),
-(5, 1, 2, 6, 0, 0, '2024-12-20 13:09:57'),
-(6, 1, 1, 1, 1, 10, '2024-12-20 13:14:07'),
-(7, 1, 2, 7, 0, 0, '2024-12-20 13:14:13');
+CREATE TABLE `users` (
+  `user_id` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- --------------------------------------------------------
 
@@ -259,42 +233,55 @@ CREATE TABLE `user_tickets` (
 --
 ALTER TABLE `answers`
   ADD PRIMARY KEY (`answer_id`),
-  ADD KEY `idx_question_id` (`question_id`);
+  ADD KEY `question_id` (`question_id`);
 
 --
 -- Index pour la table `categories`
 --
 ALTER TABLE `categories`
-  ADD PRIMARY KEY (`category_id`),
-  ADD UNIQUE KEY `name` (`name`);
+  ADD PRIMARY KEY (`category_id`);
 
 --
 -- Index pour la table `difficulty_levels`
 --
 ALTER TABLE `difficulty_levels`
-  ADD PRIMARY KEY (`level_id`),
-  ADD UNIQUE KEY `name` (`name`);
+  ADD PRIMARY KEY (`level_id`);
 
 --
 -- Index pour la table `questions`
 --
 ALTER TABLE `questions`
   ADD PRIMARY KEY (`question_id`),
-  ADD KEY `idx_category_id` (`category_id`),
-  ADD KEY `idx_level_id` (`level_id`);
+  ADD KEY `category_id` (`category_id`),
+  ADD KEY `level_id` (`level_id`);
 
 --
 -- Index pour la table `statistics`
 --
 ALTER TABLE `statistics`
-  ADD PRIMARY KEY (`stat_id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD PRIMARY KEY (`user_id`);
 
 --
 -- Index pour la table `tickets`
 --
 ALTER TABLE `tickets`
   ADD PRIMARY KEY (`ticket_id`);
+
+--
+-- Index pour la table `user_activity`
+--
+ALTER TABLE `user_activity`
+  ADD PRIMARY KEY (`activity_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Index pour la table `user_answers`
+--
+ALTER TABLE `user_answers`
+  ADD PRIMARY KEY (`user_answer_id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `question_id` (`question_id`),
+  ADD KEY `answer_id` (`answer_id`);
 
 --
 -- Index pour la table `users`
@@ -305,27 +292,11 @@ ALTER TABLE `users`
   ADD UNIQUE KEY `email` (`email`);
 
 --
--- Index pour la table `user_activity`
---
-ALTER TABLE `user_activity`
-  ADD PRIMARY KEY (`activity_id`),
-  ADD KEY `idx_activity_user_id` (`user_id`);
-
---
--- Index pour la table `user_answers`
---
-ALTER TABLE `user_answers`
-  ADD PRIMARY KEY (`user_answer_id`),
-  ADD KEY `question_id` (`question_id`),
-  ADD KEY `answer_id` (`answer_id`),
-  ADD KEY `idx_user_id` (`user_id`);
-
---
 -- Index pour la table `user_tickets`
 --
 ALTER TABLE `user_tickets`
   ADD PRIMARY KEY (`user_ticket_id`),
-  ADD KEY `user_id` (`user_id`),
+  ADD KEY `idx_user_id` (`user_id`),
   ADD KEY `idx_ticket_id` (`ticket_id`);
 
 --
@@ -357,22 +328,10 @@ ALTER TABLE `questions`
   MODIFY `question_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT pour la table `statistics`
---
-ALTER TABLE `statistics`
-  MODIFY `stat_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT pour la table `tickets`
 --
 ALTER TABLE `tickets`
   MODIFY `ticket_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT pour la table `users`
---
-ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT pour la table `user_activity`
@@ -384,7 +343,13 @@ ALTER TABLE `user_activity`
 -- AUTO_INCREMENT pour la table `user_answers`
 --
 ALTER TABLE `user_answers`
-  MODIFY `user_answer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `user_answer_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `users`
+--
+ALTER TABLE `users`
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `user_tickets`
@@ -406,8 +371,8 @@ ALTER TABLE `answers`
 -- Contraintes pour la table `questions`
 --
 ALTER TABLE `questions`
-  ADD CONSTRAINT `questions_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `questions_ibfk_2` FOREIGN KEY (`level_id`) REFERENCES `difficulty_levels` (`level_id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `questions_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`),
+  ADD CONSTRAINT `questions_ibfk_2` FOREIGN KEY (`level_id`) REFERENCES `difficulty_levels` (`level_id`);
 
 --
 -- Contraintes pour la table `statistics`
@@ -437,6 +402,6 @@ ALTER TABLE `user_tickets`
   ADD CONSTRAINT `user_tickets_ibfk_2` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`ticket_id`) ON DELETE CASCADE;
 COMMIT;
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

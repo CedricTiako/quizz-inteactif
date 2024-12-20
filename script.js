@@ -8,119 +8,70 @@ let hasAnswered = false;
 let answeredQuestions = new Set();
 let userStats = null;
 
-document.addEventListener('DOMContentLoaded', async () => {
-    await loadQuestions();
-    await loadAndDisplayStats();
-    showQuestion();
-    updateProgress();
-});
+// Configuration des récompenses
+const REWARDS = [
+    { points: 100, name: 'Badge Bronze', icon: '🥉' },
+    { points: 250, name: 'Accès Premium', icon: '⭐' },
+    { points: 500, name: 'Contenu Exclusif', icon: '👑' }
+];
 
-function updatePointsCircle(currentPoints, maxPoints) {
-    const circle = document.getElementById('progress-circle');
-    const radius = circle.r.baseVal.value;
-    const circumference = radius * 2 * Math.PI;
-    circle.style.strokeDasharray = `${circumference} ${circumference}`;
+const MAX_POINTS = REWARDS[REWARDS.length - 1].points;
+
+// Initialisation des éléments UI
+function initializeUI() {
+    // Initialiser les points
+    document.getElementById('current-points').textContent = '0';
+    document.getElementById('rewards-progress-bar').style.width = '0%';
     
-    const offset = circumference - (currentPoints / maxPoints) * circumference;
-    circle.style.strokeDashoffset = offset;
+    // Initialiser les tooltips
+    const rewardsInfo = document.getElementById('rewards-info');
+    const rewardsTooltip = document.getElementById('rewards-tooltip');
     
-    document.getElementById('current-points').textContent = currentPoints;
+    if (rewardsInfo && rewardsTooltip) {
+        rewardsInfo.addEventListener('mouseover', () => {
+            rewardsTooltip.classList.remove('hidden');
+        });
+        
+        rewardsInfo.addEventListener('mouseout', () => {
+            rewardsTooltip.classList.add('hidden');
+        });
+    }
+
+    // Initialiser le bouton suivant
+    const nextButton = document.getElementById('next-question-btn');
+    if (nextButton) {
+        nextButton.disabled = true;
+        nextButton.addEventListener('click', () => {
+            currentQuestionIndex++;
+            showQuestion();
+        });
+    }
 }
 
 async function loadAndDisplayStats() {
     try {
-        const [statsResponse, ticketsResponse] = await Promise.all([
-            axios.get(`${apiBaseUrl}?endpoint=user_stats&user_id=${userId}`),
-            axios.get(`${apiBaseUrl}?endpoint=get_all_tickets`)
-        ]);
-
-        const { user } = statsResponse.data;
-        const tickets = ticketsResponse.data;
-        userStats = user;
-        console.log(userStats);
-        console.log(tickets);
-
-        document.getElementById('current-points').textContent = user.user_points;
-        document.getElementById('quizzes-played').textContent = user.total_quizzes_played;
-        document.getElementById('correct-answers').textContent = user.total_correct_answers;
-
-        updatePointsCircle(user.user_points, Math.max(...tickets.map(t => t.points_required)));
-
-        const ticketsContainer = document.getElementById('tickets-container');
-        ticketsContainer.innerHTML = tickets.map(ticket => {
-            const progress = (user.user_points / ticket.points_required) * 100;
-            const isUnlockable = user.user_points >= ticket.points_required;
-            
-            // Calculer la classe de progression en fonction du pourcentage
-            let progressClass = 'bg-gray-200';
-            if (progress >= 100) {
-                progressClass = 'bg-ayoba-blue animate__animated animate__pulse animate__infinite';
-            } else if (progress >= 75) {
-                progressClass = 'bg-ayoba-yellow';
-            } else if (progress >= 50) {
-                progressClass = 'bg-yellow-400';
-            } else if (progress >= 25) {
-                progressClass = 'bg-yellow-300';
-            }
-
-            // Calculer le message de progression
-            const pointsNeeded = ticket.points_required - user.user_points;
-            const progressMessage = isUnlockable 
-                ? `<span class="text-ayoba-blue font-bold">Débloqué !</span>`
-                : `<span class="text-gray-600">Encore ${pointsNeeded} points</span>`;
-
-            return `
-                <div class="ticket-card p-4 rounded-lg border border-gray-200 mb-4">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <h3 class="font-semibold text-ayoba-black text-lg">${ticket.name}</h3>
-                            <p class="text-sm text-gray-600">${ticket.reward}</p>
-                        </div>
-                        <div class="text-right">
-                            <span class="inline-block px-3 py-1 rounded-full text-sm ${ticket.quantity <= 5 ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}">
-                                ${ticket.quantity} restant${ticket.quantity > 1 ? 's' : ''}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="relative pt-1">
-                        <div class="flex mb-2 items-center justify-between">
-                            <div>
-                                <span class="text-xs font-semibold inline-block text-ayoba-blue">
-                                    ${Math.min(Math.round(progress), 100)}%
-                                </span>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-xs font-semibold inline-block">
-                                    ${progressMessage}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="overflow-hidden h-2 text-xs flex rounded bg-gray-100">
-                            <div style="width:${Math.min(progress, 100)}%" 
-                                 class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center ${progressClass} transition-all duration-500">
-                            </div>
-                        </div>
-                    </div>
-
-                    ${isUnlockable ? `
-                        <button class="mt-3 w-full ayoba-button text-white px-4 py-2 rounded-lg text-sm animate__animated animate__pulse animate__infinite">
-                            Échanger maintenant !
-                        </button>
-                    ` : ''}
-                </div>
-            `;
-        }).join('');
-
+        const response = await axios.get(`${apiBaseUrl}?endpoint=user_stats&user_id=${userId}`);
+        userStats = response.data;
+        
+        // Mettre à jour les statistiques affichées
+        document.getElementById('current-points').textContent = userStats.user_points;
+        document.getElementById('quizzes-played').textContent = userStats.total_quizzes;
+        document.getElementById('correct-answers').textContent = userStats.total_correct_answers;
+        
+        // Mettre à jour la barre de progression des récompenses
+        updateRewardsProgress(userStats.user_points);
+        
     } catch (error) {
         console.error('Error loading stats:', error);
-        showError('Impossible de charger les statistiques');
+        showError('Impossible de charger les statistiques.');
     }
 }
 
 async function loadQuestions() {
     try {
+        console.log('Chargement des questions...');
         const response = await axios.get(`${apiBaseUrl}?endpoint=questions`);
+        console.log('Questions reçues:', response.data);
         questions = response.data;
     } catch (error) {
         console.error('Error loading questions:', error);
@@ -130,7 +81,9 @@ async function loadQuestions() {
 
 async function loadAnswers(questionId) {
     try {
+        console.log('Chargement des réponses pour la question:', questionId);
         const response = await axios.get(`${apiBaseUrl}?endpoint=answers&question_id=${questionId}`);
+        console.log('Réponses reçues:', response.data);
         return response.data;
     } catch (error) {
         console.error('Error loading answers:', error);
@@ -145,9 +98,14 @@ function updateProgress() {
 }
 
 async function showQuestion() {
+    console.log('Affichage de la question. Index actuel:', currentQuestionIndex);
+    console.log('Nombre total de questions:', questions.length);
+    
     if (currentQuestionIndex < questions.length) {
         hasAnswered = false;
         currentQuestion = questions[currentQuestionIndex];
+        
+        console.log('Question actuelle:', currentQuestion);
         
         if (answeredQuestions.has(currentQuestion.question_id)) {
             currentQuestionIndex++;
@@ -156,34 +114,52 @@ async function showQuestion() {
         }
         
         const questionContainer = document.getElementById('question-container');
+        const answersContainer = document.getElementById('answers-container');
+        
+        if (!questionContainer || !answersContainer) {
+            console.error('Conteneurs non trouvés:', {
+                questionContainer: !!questionContainer,
+                answersContainer: !!answersContainer
+            });
+            return;
+        }
+        
         questionContainer.className = 'mb-6 text-xl font-semibold text-ayoba-black animate__animated animate__fadeIn';
         questionContainer.innerText = currentQuestion.question_text;
         
         const answers = await loadAnswers(currentQuestion.question_id);
-        const answersContainer = document.getElementById('answers-container');
         answersContainer.innerHTML = '';
+        answersContainer.className = 'mb-6';
         
         answers.forEach((answer, index) => {
             const answerButton = document.createElement('button');
             answerButton.className = 'answer-button block w-full text-left bg-white border-2 border-gray-200 hover:border-ayoba-blue p-4 my-3 rounded-xl transition-all duration-300 animate__animated animate__fadeIn';
-            answerButton.style.animationDelay = `${index * 100}ms`;
+            answerButton.style.animationDelay = `${index * 0.1}s`;
             answerButton.innerHTML = `
                 <div class="flex items-center">
-                    <div class="w-6 h-6 border-2 border-gray-300 rounded-full mr-3 flex items-center justify-center">
-                        <div class="answer-dot w-3 h-3 rounded-full hidden bg-ayoba-blue"></div>
+                    <div class="flex-grow">${answer.answer_text}</div>
+                    <div class="answer-dot hidden">
+                        <svg class="w-6 h-6 text-ayoba-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
                     </div>
-                    <span>${answer.answer_text}</span>
                 </div>
             `;
-            answerButton.onclick = () => !hasAnswered && handleAnswer(answer.answer_id, answer.is_correct, answerButton);
+            
+            answerButton.addEventListener('click', () => handleAnswer(answer.answer_id, answer.is_correct, answerButton));
             answersContainer.appendChild(answerButton);
         });
         
-        const nextButton = document.getElementById('next-question-btn');
-        nextButton.disabled = true;
-        nextButton.className = 'ayoba-button w-full text-white font-bold px-6 py-3 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-ayoba-blue focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed';
-        nextButton.innerText = currentQuestionIndex === questions.length - 1 ? 'Terminer' : 'Suivant';
+        // Mettre à jour la progression
+        document.getElementById('current-question').textContent = currentQuestionIndex + 1;
+        document.getElementById('total-questions').textContent = questions.length;
         updateProgress();
+        
+        // Désactiver le bouton suivant jusqu'à ce qu'une réponse soit donnée
+        const nextButton = document.getElementById('next-question-btn');
+        if (nextButton) {
+            nextButton.disabled = true;
+        }
     } else {
         showQuizComplete();
     }
@@ -204,16 +180,13 @@ async function handleAnswer(answerId, isCorrect, buttonElement) {
         
         const result = response.data;
         
-        // Désactiver tous les boutons et masquer les points
         document.querySelectorAll('.answer-button').forEach(button => {
             button.classList.add('opacity-50');
             button.classList.remove('hover:border-ayoba-blue');
             button.disabled = true;
         });
         
-        // Afficher le résultat
         if (result.is_correct) {
-            // Bonne réponse
             buttonElement.className = 'answer-button block w-full text-left bg-blue-50 border-2 border-ayoba-blue p-4 my-3 rounded-xl animate__animated animate__pulse';
             buttonElement.querySelector('.answer-dot').classList.remove('hidden');
             showFeedback(`
@@ -225,7 +198,6 @@ async function handleAnswer(answerId, isCorrect, buttonElement) {
                 </div>
             `, 'success');
             
-            // Animation des points gagnés
             const pointsAnimation = document.createElement('div');
             pointsAnimation.className = 'fixed text-2xl font-bold text-ayoba-blue animate__animated animate__fadeOutUp';
             pointsAnimation.style.left = `${buttonElement.offsetLeft + buttonElement.offsetWidth / 2}px`;
@@ -233,10 +205,10 @@ async function handleAnswer(answerId, isCorrect, buttonElement) {
             pointsAnimation.textContent = `+${result.points_awarded}`;
             document.body.appendChild(pointsAnimation);
             setTimeout(() => pointsAnimation.remove(), 1000);
-
+            
             await loadAndDisplayStats();
+            updateRewardsProgress(result.total_points);
         } else {
-            // Mauvaise réponse
             buttonElement.className = 'answer-button block w-full text-left bg-red-50 border-2 border-red-500 p-4 my-3 rounded-xl animate__animated animate__shakeX';
             showFeedback(`
                 <div class="flex items-center justify-center">
@@ -249,10 +221,11 @@ async function handleAnswer(answerId, isCorrect, buttonElement) {
             await loadAndDisplayStats();
         }
         
-        // Activer le bouton suivant avec animation
         const nextButton = document.getElementById('next-question-btn');
-        nextButton.disabled = false;
-        nextButton.classList.add('animate__animated', 'animate__pulse');
+        if (nextButton) {
+            nextButton.disabled = false;
+            nextButton.classList.add('animate__animated', 'animate__pulse');
+        }
         
     } catch (error) {
         console.error('Error submitting answer:', error);
@@ -260,45 +233,165 @@ async function handleAnswer(answerId, isCorrect, buttonElement) {
     }
 }
 
-function showFeedback(message, type) {
-    const feedbackElement = document.createElement('div');
-    feedbackElement.className = `mt-4 p-4 rounded-lg text-center animate__animated animate__fadeIn ${
-        type === 'success' ? 'bg-blue-50 text-ayoba-blue' : 'bg-red-50 text-red-800'
+function showFeedback(message, type = 'info') {
+    const feedbackContainer = document.createElement('div');
+    feedbackContainer.className = `fixed top-4 left-1/2 transform -translate-x-1/2 p-4 rounded-lg shadow-lg animate__animated animate__fadeInDown ${
+        type === 'success' ? 'bg-green-100 text-green-800' :
+        type === 'error' ? 'bg-red-100 text-red-800' :
+        'bg-blue-100 text-blue-800'
     }`;
-    feedbackElement.innerHTML = message;
-    
-    const oldFeedback = document.querySelector('.feedback');
-    if (oldFeedback) oldFeedback.remove();
-    
-    feedbackElement.classList.add('feedback');
-    document.getElementById('answers-container').appendChild(feedbackElement);
+    feedbackContainer.innerHTML = message;
+    document.body.appendChild(feedbackContainer);
+    setTimeout(() => {
+        feedbackContainer.classList.replace('animate__fadeInDown', 'animate__fadeOutUp');
+        setTimeout(() => feedbackContainer.remove(), 500);
+    }, 2000);
 }
 
 function showError(message) {
-    const errorElement = document.createElement('div');
-    errorElement.className = 'bg-red-100 border-l-4 border-red-500 text-red-700 p-4 my-4 rounded animate__animated animate__fadeIn';
-    errorElement.textContent = message;
-    document.getElementById('quiz-container').appendChild(errorElement);
-    setTimeout(() => errorElement.remove(), 5000);
+    showFeedback(message, 'error');
 }
 
 function showQuizComplete() {
-    const quizContainer = document.getElementById('quiz-container');
-    quizContainer.innerHTML = `
-        <div class="p-8 text-center animate__animated animate__fadeIn">
-            <div class="ayoba-gradient text-white p-8 rounded-xl mb-6">
-                <h2 class="text-3xl font-bold mb-4">Quiz Terminé !</h2>
-                <p class="text-xl">Félicitations pour avoir terminé le quiz !</p>
+    const container = document.querySelector('.lg\\:col-span-1:nth-child(2) > div');
+    if (container) {
+        container.innerHTML = `
+            <div class="text-center py-8">
+                <div class="text-6xl mb-4">🎉</div>
+                <h2 class="text-2xl font-bold text-ayoba-blue mb-4">Quiz terminé !</h2>
+                <p class="text-gray-600 mb-6">Félicitations ! Vous avez répondu à toutes les questions.</p>
+                <button onclick="location.reload()" class="ayoba-button text-white px-6 py-3 rounded-lg">
+                    Recommencer
+                </button>
             </div>
-            <button onclick="location.reload()" 
-                    class="ayoba-button text-white font-bold px-8 py-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">
-                Recommencer le Quiz
+        `;
+    }
+}
+
+function updateRewardsProgress(currentPoints) {
+    const progressBar = document.getElementById('rewards-progress-bar');
+    const progressPercentage = Math.min((currentPoints / MAX_POINTS) * 100, 100);
+    
+    // Animation fluide de la barre de progression
+    progressBar.style.width = `${progressPercentage}%`;
+    
+    // Mise à jour des marqueurs de récompenses
+    REWARDS.forEach((reward, index) => {
+        const marker = document.querySelector(`#reward-markers > div:nth-child(${index + 1})`);
+        const icon = marker.querySelector('div:first-child');
+        
+        if (currentPoints >= reward.points) {
+            // Récompense débloquée
+            icon.classList.add('bg-ayoba-yellow', 'scale-110');
+            icon.classList.remove('bg-white');
+            
+            // Ajouter une animation de pulse
+            if (!icon.classList.contains('animate__animated')) {
+                icon.classList.add('animate__animated', 'animate__pulse');
+            }
+            
+            // Animation spéciale si c'est une nouvelle récompense
+            if (currentPoints === reward.points) {
+                showRewardUnlocked(reward);
+            }
+        } else {
+            // Récompense non débloquée
+            icon.classList.remove('bg-ayoba-yellow', 'scale-110', 'animate__animated', 'animate__pulse');
+            icon.classList.add('bg-white');
+        }
+        
+        // Ajouter une classe pour les récompenses presque débloquées
+        const closeToUnlock = currentPoints >= (reward.points * 0.8);
+        if (closeToUnlock && !icon.classList.contains('bg-ayoba-yellow')) {
+            icon.classList.add('animate__animated', 'animate__headShake');
+            setTimeout(() => {
+                icon.classList.remove('animate__animated', 'animate__headShake');
+            }, 1000);
+        }
+    });
+}
+
+function showRewardUnlocked(reward) {
+    const rewardModal = document.createElement('div');
+    rewardModal.className = 'fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 animate__animated animate__fadeIn';
+    rewardModal.innerHTML = `
+        <div class="bg-white rounded-xl p-8 text-center max-w-md mx-auto animate__animated animate__zoomIn">
+            <div class="text-6xl mb-4 animate__animated animate__bounceIn">${reward.icon}</div>
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-200"></div>
+                </div>
+                <div class="relative flex justify-center">
+                    <span class="bg-white px-4 text-sm text-gray-500">NOUVELLE RÉCOMPENSE</span>
+                </div>
+            </div>
+            <h2 class="text-2xl font-bold text-ayoba-blue mt-4 mb-2">${reward.name}</h2>
+            <div class="text-ayoba-yellow text-4xl font-bold mb-4">${reward.points} points</div>
+            <p class="text-gray-600 mb-6">Félicitations ! Continuez comme ça pour débloquer plus de récompenses.</p>
+            <button class="ayoba-button text-white px-8 py-3 rounded-lg transform transition-transform hover:scale-105">
+                Continuer
             </button>
         </div>
     `;
+    document.body.appendChild(rewardModal);
+    
+    // Ajouter des confettis
+    const confetti = document.createElement('div');
+    confetti.className = 'fixed inset-0 pointer-events-none z-50';
+    for (let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'absolute w-2 h-2 rounded-full';
+        particle.style.backgroundColor = ['#FFD700', '#4299E1', '#48BB78'][Math.floor(Math.random() * 3)];
+        particle.style.left = Math.random() * 100 + 'vw';
+        particle.style.top = '-10px';
+        particle.style.transform = `rotate(${Math.random() * 360}deg)`;
+        particle.style.animation = `fall ${1 + Math.random() * 2}s linear forwards`;
+        confetti.appendChild(particle);
+    }
+    document.body.appendChild(confetti);
+    
+    // Ajouter le style pour l'animation des confettis
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(960deg);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    rewardModal.querySelector('button').onclick = () => {
+        rewardModal.classList.replace('animate__fadeIn', 'animate__fadeOut');
+        confetti.remove();
+        setTimeout(() => {
+            rewardModal.remove();
+            style.remove();
+        }, 500);
+    };
+    
+    // Retirer automatiquement après 5 secondes
+    setTimeout(() => {
+        if (document.body.contains(rewardModal)) {
+            rewardModal.classList.replace('animate__fadeIn', 'animate__fadeOut');
+            confetti.remove();
+            setTimeout(() => {
+                rewardModal.remove();
+                style.remove();
+            }, 500);
+        }
+    }, 5000);
 }
 
-document.getElementById('next-question-btn').addEventListener('click', () => {
-    currentQuestionIndex++;
-    showQuestion();
+// Chargement initial
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        initializeUI();
+        await loadQuestions();
+        await loadAndDisplayStats();
+        showQuestion();
+    } catch (error) {
+        console.error('Error during initialization:', error);
+        showError('Une erreur est survenue lors de l\'initialisation du quiz.');
+    }
 });
