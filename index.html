@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Ayoba Cameroun</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="script.js" defer></script>
+    <style>
+        :root {
+            --ayoba-blue: #0061a2;
+            --ayoba-yellow: #ffcc00;
+            --ayoba-black: #000000;
+        }
+        .quiz-transition {
+            transition: all 0.3s ease;
+        }
+        .answer-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 97, 162, 0.2);
+        }
+        .ayoba-gradient {
+            background: linear-gradient(135deg, var(--ayoba-blue) 0%, #004b7d 100%);
+        }
+        .ayoba-button {
+            background-color: var(--ayoba-blue);
+            transition: all 0.3s ease;
+        }
+        .ayoba-button:hover {
+            background-color: #004b7d;
+        }
+        .stats-card {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--ayoba-blue);
+        }
+        .progress-ring {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        .ticket-card {
+            transition: all 0.3s ease;
+        }
+        .ticket-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 97, 162, 0.1);
+        }
+        .progress-bar-yellow {
+            background-color: var(--ayoba-yellow);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Header avec le logo Ayoba -->
+        <header class="ayoba-gradient text-white py-4 px-6 shadow-lg">
+            <div class="container mx-auto flex items-center justify-between">
+                <h1 class="text-2xl font-bold">Ayoba Quiz</h1>
+                <img src="https://ayoba.me/wp-content/uploads/2023/05/ayoba_logo_white.png" alt="Ayoba Logo" class="h-8">
+            </div>
+        </header>
+
+        <div class="container mx-auto p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Section Stats (Colonne gauche) -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <div class="text-center mb-6">
+                            <div id="points-circle" class="relative mx-auto w-32 h-32">
+                                <svg class="w-full h-full" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="45" fill="none" stroke="#e5e7eb" stroke-width="10"/>
+                                    <circle id="progress-circle" class="progress-ring" cx="50" cy="50" r="45" fill="none" stroke="#0061a2" stroke-width="10" stroke-dasharray="283" stroke-dashoffset="283"/>
+                                </svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span id="current-points" class="text-3xl font-bold text-ayoba-blue">0</span>
+                                    <span class="text-sm text-gray-600">Points</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="stats-card p-4 rounded-lg text-center">
+                                <div id="quizzes-played" class="text-2xl font-bold text-ayoba-blue">0</div>
+                                <div class="text-sm text-gray-600">Quiz Joués</div>
+                            </div>
+                            <div class="stats-card p-4 rounded-lg text-center">
+                                <div id="correct-answers" class="text-2xl font-bold text-ayoba-blue">0</div>
+                                <div class="text-sm text-gray-600">Bonnes Réponses</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Quiz (Colonne centrale) -->
+                <div class="lg:col-span-1">
+                    <div id="quiz-container" class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="w-full bg-gray-200 h-2">
+                            <div id="progress-bar" class="h-2 progress-bar-yellow transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <div class="p-6">
+                            <div id="question-container" class="mb-6 text-xl font-semibold text-ayoba-black animate__animated animate__fadeIn"></div>
+                            <div id="answers-container" class="space-y-4 mb-6"></div>
+                            <button id="next-question-btn" 
+                                    class="ayoba-button w-full text-white font-bold px-6 py-3 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-ayoba-blue focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed" 
+                                    disabled>
+                                Suivant
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Récompenses (Colonne droite) -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h2 class="text-xl font-bold text-ayoba-black mb-4">Récompenses à Débloquer</h2>
+                        <div id="tickets-container" class="space-y-4">
+                            <!-- Les tickets seront injectés ici -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="ayoba-gradient text-white py-4 mt-8">
+            <div class="container mx-auto text-center">
+                <p>&copy; 2024 Ayoba Cameroun - Tous droits réservés</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
