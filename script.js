@@ -131,6 +131,7 @@ async function loadAnswers(questionId) {
         answers.forEach(answer => {
             const answerButton = document.createElement('button');
             answerButton.className = 'answer-button w-full text-left p-4';
+            answerButton.id = `answer-${answer.answer_id}`; // Set unique ID using answer_id
             answerButton.innerHTML = `
                 <div class="flex items-center">
                     <span class="text-lg">${answer.answer_text}</span>
@@ -233,6 +234,7 @@ async function showQuestion() {
             shuffledAnswers.forEach(answer => {
                 const answerButton = document.createElement('button');
                 answerButton.className = 'answer-button w-full text-left p-4';
+                answerButton.id = `answer-${answer.answer_id}`; // Set unique ID using answer_id
                 answerButton.innerHTML = `
                     <div class="flex items-center">
                         <span class="text-lg">${answer.answer_text}</span>
@@ -287,7 +289,8 @@ function handleAnswer(answerId, isCorrect, button) {
         });
         
         // Afficher le feedback et mettre à jour le score
-        if (isCorrect) {
+
+        if (isCorrect==1) {
             showFeedback('Bonne réponse ! 🎉');
             createConfetti();
             updateScore(10); // +10 points pour une bonne réponse
@@ -380,7 +383,7 @@ function updateScore(points) {
     }
     const totalPoints = document.getElementById('total-points');
     const currentPoints = parseInt(totalPoints.textContent);
-    const newPoints = Math.max(0, currentPoints + points); // Empêcher le score d'aller en dessous de 0
+    const newPoints =currentPoints + points; // Empêcher le score d'aller en dessous de 0
     
     // Animation du score
     let count = currentPoints;
