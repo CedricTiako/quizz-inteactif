@@ -708,7 +708,7 @@ function setupPhoneModal() {
             createUser(phoneInput).then(data => {
                // userId = data.user_id;
                 //localStorage.setItem('userId',userId)
-                console.log('User ID:', userId);
+               // console.log('User ID:', userId);
             });
             localStorage.setItem('phone', phoneInput);
             document.getElementById('phoneModal').classList.remove('active');
