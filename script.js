@@ -116,12 +116,12 @@ async function loadAndDisplayStats() {
         userStats = data;
 
         const totalPointsElement = document.getElementById('total-points');
-        const totalPointsElement2 = document.getElementById('total-points2');
+       // const totalPointsElement2 = document.getElementById('total-points2');
         const correctAnswersElement = document.getElementById('correct-answers');
         updateLinearProgress( data.user.total_points_earned || 0,500);
         if (totalPointsElement) {
             totalPointsElement.textContent = data.user.total_points_earned || 0;
-            totalPointsElement2.textContent = data.user.total_points_earned || 0;
+    //        totalPointsElement2.textContent = data.user.total_points_earned || 0;
         }
         if (correctAnswersElement) {
             correctAnswersElement.textContent = data.user.total_correct_answers || 0;
