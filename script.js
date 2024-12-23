@@ -8,6 +8,7 @@ let hasAnswered = false;
 let answeredQuestions = new Set();
 let userStats = null;
 let tickets = []; 
+const preferredLang = localStorage.getItem('preferred_language') || navigator.language.split('-')[0];
 
 const REWARDS = [
     { points: 100, name: 'Badge Bronze', icon: '🥉' },
@@ -74,7 +75,7 @@ async function initializeUIHandler() {
 async function loadAndDisplayStats() {
     console.log('Loading user stats...');
     try {
-        const response = await axios.get(`${API_BASE_URL}?endpoint=user_stats&user_id=${userId}`);
+        const response = await axios.get(`${API_BASE_URL}?lang=${preferredLang}&endpoint=user_stats&user_id=${userId}`);
         if (!response.ok) throw new Error('Failed to load user stats');
         const data = await response.json();
         console.log('User stats loaded:', data);
@@ -100,7 +101,7 @@ async function loadAndDisplayStats() {
 async function loadQuestions() {
     console.log('Loading questions...');
     try {
-        const response = await fetch(`${API_BASE_URL}?endpoint=questions`);
+        const response = await fetch(`${API_BASE_URL}?lang=${preferredLang}&endpoint=questions`);
         if (!response.ok) throw new Error('Failed to load questions');
         const data = await response.json();
         console.log('Questions loaded:', data);
@@ -123,7 +124,7 @@ async function loadQuestions() {
 
 async function loadAnswers(questionId) {
     try {
-        const response = await axios.get(`https://ayoba-yamo-quizz.zen-apps.com/api/index.php?endpoint=answers&question_id=${questionId}`);
+        const response = await axios.get(`https://ayoba-yamo-quizz.zen-apps.com/api/index.php?lang=${preferredLang}&endpoint=answers&question_id=${questionId}`);
         const answers = response.data;
         const answersContainer = document.getElementById('answers-container');
         answersContainer.innerHTML = ''; // Clear previous answers
@@ -154,7 +155,7 @@ async function loadAnswers(questionId) {
 async function loadTickets() {
     console.log('Loading tickets...');
     try {
-        const response = await axios.get(`${API_BASE_URL}?endpoint=get_all_tickets`);
+        const response = await axios.get(`${API_BASE_URL}?lang=${preferredLang}&endpoint=get_all_tickets`);
         tickets = response.data;
         console.log('Tickets loaded:', tickets);
         return tickets;
@@ -168,7 +169,7 @@ async function loadTickets() {
 async function createUser(username, email, password) {
     console.log('Creating user...');
     try {
-        const response = await fetch(`${API_BASE_URL}?endpoint=users`, {
+        const response = await fetch(`${API_BASE_URL}?lang=${preferredLang}&endpoint=users`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -485,7 +486,7 @@ function getTicketIcon(ticketName) {
 
 async function loadRewards() {
     try {
-        const response = await axios.get('https://ayoba-yamo-quizz.zen-apps.com/api/index.php/?endpoint=get_all_tickets');
+        const response = await axios.get('https://ayoba-yamo-quizz.zen-apps.com/api/index.php/?lang=${preferredLang}&endpoint=get_all_tickets');
         const rewards = response.data;
         const rewardsContainer = document.getElementById('rewards-container');
         rewardsContainer.innerHTML = ''; // Clear previous rewards
