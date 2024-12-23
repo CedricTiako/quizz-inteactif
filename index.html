@@ -27,13 +27,14 @@
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
         }
 
         .particle {
             position: absolute;
             width: 10px;
             height: 10px;
-            background-color: var(--primary-color);
+            background-color: var(--accent-color);
             border-radius: 50%;
             animation: particle 20s linear infinite;
         }
@@ -46,6 +47,99 @@
                 transform: translateY(100vh);
             }
         }
+
+        .reward-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 12px;
+            background-color: #2d3748;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .reward-item-icon {
+            font-size: 2rem;
+        }
+
+        .progress-bar {
+            background-image: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+        }
+
+        .cta-button {
+            background: var(--accent-color);
+            color: var(--text-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background: var(--primary-color);
+            transform: scale(1.1);
+        }
+
+        circle {
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+}
+
+.progress-bar {
+    stroke-linecap: round;
+    stroke: var(--primary-color);
+}
+
+.glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+}
+circle {
+    transition: stroke-dashoffset 0.5s ease-in-out;
+}
+
+
+
+/* Progrès de la barre */
+.progress-bar {
+    background-image: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+}
+
+/* Réponses */
+#answers-container button {
+    padding: 0.75rem;
+    border: 2px solid var(--gray-800);
+    border-radius: 8px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+#answers-container button:hover {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+/* Question Suivante */
+#next-question-btn {
+    background: var(--accent-color);
+    color: var(--text-color);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+}
+
+#next-question-btn:hover:not([disabled]) {
+    background: var(--primary-color);
+    transform: scale(1.1);
+}
+
+
     </style>
 </head>
 <body class="font-sans antialiased">
@@ -53,85 +147,107 @@
     <div class="particles" id="particles"></div>
 
     <div class="container mx-auto px-4 py-8">
-        <!-- En-tête -->
-        <!-- <header class="text-center mb-12 animate__animated animate__fadeIn">
-            <h1 class="text-5xl font-bold gradient-text mb-4">Ayoba Quiz</h1>
-            <p class="text-xl text-gray-400">Testez vos connaissances et gagnez des récompenses !</p>
-        </header> -->
+
 
         <div class="grid lg:grid-cols-3 gap-8">
             <!-- Section Stats -->
-            <div class="lg:col-span-1 space-y-6">
-                <!-- Carte Stats -->
-                <div class="glass-effect rounded-2xl p-6">
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="stats-card">
-                            <div class="stats-value" id="total-points">0</div>
-                            <div class="text-sm text-gray-400">Points</div>
-                        </div>
-                        <div class="stats-card">
-                            <div class="stats-value" id="correct-answers">0</div>
-                            <div class="text-sm text-gray-400">Bonnes réponses</div>
-                        </div>
+            <div class="lg:col-span-1 glass-effect rounded-2xl p-6 text-center">
+                <!-- Titre principal -->
+                <h2 class="text-lg font-bold text-gray-200 mb-4">Vos statistiques</h2>
+                
+                <div class="flex justify-between items-center">
+                    <!-- Carte Points -->
+                    <div class="flex flex-col items-center">
+                        <div class="text-3xl font-extrabold text-accent" id="total-points">0</div>
+                        <div class="text-sm text-gray-400">Points cumulés</div>
                     </div>
-                </div>
-
-                <!-- Barre de progression -->
-                <div class="glass-effect rounded-2xl p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold text-gray-200">Progression</h2>
-                        <span class="text-sm text-gray-400" id="rewards-progress-text">0/500 points</span>
-                    </div>
-
-                    <div class="relative mb-6">
-                        <div class="h-4 bg-gray-800 rounded-full overflow-hidden">
-                            <div id="rewards-progress-bar" 
-                                 class="h-full progress-bar"
-                                 style="width: 0%">
+            
+                    <!-- Cercle Récompense -->
+                    <div class="flex flex-col items-center">
+                        <!-- Cercle SVG -->
+                        <div class="relative w-24 h-24 mb-2">
+                            <svg class="w-full h-full" viewBox="0 0 100 100">
+                                <circle class="text-gray-800" cx="50" cy="50" r="45" stroke-width="10" fill="none" />
+                                <circle
+                                    id="reward-progress-circle"
+                                    class="progress-bar text-blue-500"
+                                    cx="50"
+                                    cy="50"
+                                    r="45"
+                                    stroke-width="10"
+                                    fill="none"
+                                    stroke-dasharray="283"
+                                    stroke-dashoffset="283"
+                                    style="transition: stroke-dashoffset 0.3s ease;"
+                                />
+                            </svg>
+                            <!-- Texte au centre du cercle -->
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <span id="reward-quantity" class="text-sm text-gray-400"></span>
                             </div>
                         </div>
+                        <!-- Texte sous le cercle -->
+                        <span id="reward-name" class="text-xs font-bold text-gray-200">Récompense</span>
                     </div>
-
-              
+            
+                    <!-- Carte Bonnes Réponses -->
+                    <div class="flex flex-col items-center">
+                        <div class="text-3xl font-extrabold text-green-500" id="correct-answers">0</div>
+                        <div class="text-sm text-gray-400">Bonnes réponses</div>
+                    </div>
                 </div>
             </div>
+            
 
             <!-- Section Quiz -->
             <div class="lg:col-span-2">
                 <div class="glass-effect rounded-2xl p-8">
-                    <!-- Progression -->
-                    <div class="flex items-center justify-between mb-8">
+                    <!-- Barre de progression globale -->
+                    <div class="relative mb-6">
+                        <h2 class="text-lg font-bold text-gray-200 mb-2">Progression</h2>
+                        <div class="h-4 bg-gray-800 rounded-full overflow-hidden">
+                            <div id="scrore-progress-bar" class="h-full progress-bar" style="width: 0%;"></div>
+                        </div>
+                        <div class="flex justify-between mt-1 text-sm text-gray-400">
+                            <span id="total-points2">0 points</span>
+                            <span id="rewards-progress-text">0/500 points</span>
+                        </div>
+                    </div>
+            
+                    <!-- Question -->
+                    <div class="text-center mb-8">
+                        <h2 class="text-xl font-bold text-gray-200 mb-4">Question actuelle</h2>
                         <div class="text-gray-400">
                             Question <span id="current-question" class="text-white font-bold">1</span>
                             <span class="text-gray-600">/</span>
                             <span id="total-questions" class="text-gray-400">10</span>
                         </div>
-                        <div class="w-48 h-2 bg-gray-800 rounded-full overflow-hidden">
-                            <div id="progress-bar" class="h-full progress-bar"></div>
-                        </div>
                     </div>
-
-                    <!-- Question -->
-                    <div id="question-container" class="mb-8 text-2xl font-bold text-gray-200">
+            
+                    <!-- Question Container -->
+                    <div id="question-container" class="mb-8 text-2xl font-bold text-gray-200 text-center">
                         <!-- La question sera injectée ici -->
                     </div>
-
+            
                     <!-- Réponses -->
                     <div id="answers-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Les réponses seront injectées ici -->
                     </div>
-
+            
                     <!-- Bouton suivant -->
                     <div class="mt-8 text-center">
                         <button id="next-question-btn" 
-                                class="px-8 py-3 rounded-xl font-semibold transform transition-all duration-300 hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none next-button"
+                                class="cta-button disabled:opacity-50 disabled:cursor-not-allowed"
                                 disabled>
                             Question suivante
                         </button>
                     </div>
                 </div>
             </div>
+            
         </div>
+
+
     </div>
 
     <!-- Container pour les messages de feedback -->

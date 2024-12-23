@@ -18,14 +18,39 @@ const REWARDS = [
 
 const MAX_POINTS = REWARDS[REWARDS.length - 1].points;
 
+
+let translations = {};
+
+async function loadTranslations() {
+    try {
+        const response = await fetch('translations.json');
+        const data = await response.json();
+        const lang = preferredLang || 'en'; // Par défaut en anglais
+        translations = data[lang] || data['en']; // Utiliser les traductions en anglais si la langue n'est pas disponible
+        console.log('Traductions chargées pour la langue:', lang);
+    } catch (error) {
+        console.error('Erreur lors du chargement des traductions:', error);
+        translations = {}; // Charger un objet vide en cas d'échec
+    }
+}
+
+
+function t(key) {
+    return translations[key] || key; // Retourne la traduction ou la clé par défaut si la traduction est absente
+}
 // Fonction pour mélanger un tableau (algorithme de Fisher-Yates)
 function shuffleArray(array) {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    if(array!=null)
+    {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
     }
-    return shuffled;
+    
+    return null;
 }
 
 async function initializeUI() {
@@ -42,7 +67,7 @@ async function initializeUIHandler() {
     console.log('Initializing UI handler...');
     const totalPoints = document.getElementById('total-points');
     const correctAnswers = document.getElementById('correct-answers');
-    const progressBar = document.getElementById('rewards-progress-bar');
+    const progressBar = document.getElementById('scrore-progress-bar');
     const quizLoader = document.getElementById('quiz-loader');
     const quizContent = document.getElementById('quiz-content');
 
@@ -55,8 +80,13 @@ async function initializeUIHandler() {
         if (quizLoader) quizLoader.classList.remove('hidden');
         if (quizContent) quizContent.classList.add('hidden');
         
+        await loadTranslations(); // Charger les traductions avant d'initialiser l'UI
+   
+        
+        await loadRewardData();
         // Charger les questions
         await loadQuestions();
+        await loadAndDisplayStats();
         
         // Cacher le loader et afficher le contenu
         if (quizLoader) quizLoader.classList.add('hidden');
@@ -68,7 +98,7 @@ async function initializeUIHandler() {
 
     } catch (error) {
         console.error('Erreur lors du chargement des questions:', error);
-        showFeedback('Erreur lors du chargement des questions. Veuillez réessayer.', 'error');
+        showFeedback(t('loading_error'), 'error');
     }
 }
 
@@ -76,16 +106,19 @@ async function loadAndDisplayStats() {
     console.log('Loading user stats...');
     try {
         const response = await axios.get(`${API_BASE_URL}?lang=${preferredLang}&endpoint=user_stats&user_id=${userId}`);
-        if (!response.ok) throw new Error('Failed to load user stats');
-        const data = await response.json();
+        if (!response) throw new Error('Failed to load user stats');
+        //const data = await response.json();
+        const data = response.data;
         console.log('User stats loaded:', data);
         userStats = data;
 
         const totalPointsElement = document.getElementById('total-points');
+        const totalPointsElement2 = document.getElementById('total-points2');
         const correctAnswersElement = document.getElementById('correct-answers');
         
         if (totalPointsElement) {
             totalPointsElement.textContent = data.user.total_points_earned || 0;
+            totalPointsElement2.textContent = data.user.total_points_earned || 0;
         }
         if (correctAnswersElement) {
             correctAnswersElement.textContent = data.user.total_correct_answers || 0;
@@ -94,7 +127,7 @@ async function loadAndDisplayStats() {
         updateRewardsProgress(data.user.total_points_earned || 0);
     } catch (error) {
         console.error('Error loading user stats:', error);
-        showFeedback('Erreur lors du chargement des statistiques', 'error');
+        showFeedback(t('loading_stats_error'), 'error');
     }
 }
 
@@ -117,7 +150,7 @@ async function loadQuestions() {
         return questions;
     } catch (error) {
         console.error('Error loading questions:', error);
-        showFeedback('Erreur lors du chargement des questions', 'error');
+        showFeedback('loading_error', 'error');
         throw error;
     }
 }
@@ -161,7 +194,7 @@ async function loadTickets() {
         return tickets;
     } catch (error) {
         console.error('Error loading tickets:', error);
-        showFeedback('Impossible de charger les récompenses', 'error');
+        showFeedback('loading_rewards_error', 'error');
         return [];
     }
 }
@@ -191,7 +224,7 @@ async function createUser(username, email, password) {
         return data;
     } catch (error) {
         console.error('Erreur:', error);
-        showFeedback('Erreur lors de la création du compte', 'error');
+        showFeedback('account_creation_error', 'error');
         throw error;
     }
 }
@@ -204,7 +237,7 @@ async function showQuestion() {
         // Check if currentQuestion has a valid id
         if (!currentQuestion.id) {
             console.error('showQuestion: currentQuestion.id is missing');
-            showFeedback('Erreur: ID de la question manquant', 'error');
+            //showFeedback('Erreur: ID de la question manquant', 'error');
             return;
         }
         
@@ -213,7 +246,7 @@ async function showQuestion() {
         document.getElementById('total-questions').textContent = questions.length;
         
         // Mise à jour de la barre de progression
-        const progressBar = document.getElementById('progress-bar');
+        const progressBar = document.getElementById('scrore-progress-bar');
         const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
         progressBar.style.width = `${progress}%`;
         
@@ -232,7 +265,7 @@ async function showQuestion() {
             // Mélanger les réponses
             const shuffledAnswers = shuffleArray(answers);
             
-            shuffledAnswers.forEach(answer => {
+            shuffledAnswers?.forEach(answer => {
                 const answerButton = document.createElement('button');
                 answerButton.className = 'answer-button w-full text-left p-4';
                 answerButton.id = `answer-${answer.answer_id}`; // Set unique ID using answer_id
@@ -252,7 +285,7 @@ async function showQuestion() {
             });
         } catch (error) {
             console.error('Error loading answers:', error);
-            showFeedback('Impossible de charger les réponses', 'error');
+            showFeedback('loading_answers_error', 'error');
         }
         
         // Réinitialiser l'état
@@ -267,20 +300,26 @@ async function showQuestion() {
     }
 }
 
-// Gestion des réponses
-function handleAnswer(answerId, isCorrect, button) {
-    console.log('Answer selected:', answerId, 'Correct:', isCorrect);
-    if (hasAnswered) return;
+async function handleAnswer(answerId, isCorrect, button) {
+    console.log('Réponse sélectionnée :', answerId, 'Correcte :', isCorrect);
+
+    if (hasAnswered) return; // Éviter les doubles réponses
     hasAnswered = true;
-    
+
+    // Mettre à jour l'interface pour le bouton sélectionné
     const buttons = document.querySelectorAll('.answer-button');
     buttons.forEach(btn => btn.classList.remove('selected'));
-    button.classList.add('selected');
-    
-    // Animation de sélection
-    button.classList.add('animate__animated', 'animate__pulse');
-    
-    setTimeout(() => {
+    button.classList.add('selected', 'animate__animated', 'animate__pulse');
+
+    // Appeler le backend pour enregistrer la réponse
+    try {
+        const response = await submitAnswer(userId, currentQuestion.id, answerId);
+        console.log('Réponse enregistrée par le backend :', response);
+
+        // Traitement du feedback et des points
+        processAnswerFeedback(response.is_correct, response.points_awarded);
+
+        // Marquer les bonnes et mauvaises réponses
         buttons.forEach(btn => {
             if (btn.dataset.correct === "1") {
                 btn.classList.add('correct', 'animate__animated', 'animate__bounceIn');
@@ -288,35 +327,24 @@ function handleAnswer(answerId, isCorrect, button) {
                 btn.classList.add('wrong', 'animate__animated', 'animate__shakeX');
             }
         });
-        
-        // Afficher le feedback et mettre à jour le score
 
-        if (isCorrect==1) {
-            showFeedback('Bonne réponse ! 🎉');
-            createConfetti();
-            updateScore(10); // +10 points pour une bonne réponse
-            
-            // Incrémenter le compteur de bonnes réponses
-            const correctAnswers = document.getElementById('correct-answers');
-            correctAnswers.textContent = parseInt(correctAnswers.textContent) + 1;
-        } else {
-            showFeedback('Mauvaise réponse 😕', 'error');
-            updateScore(-1); // -1 point pour une mauvaise réponse
-        }
-        
-        // Activer le bouton suivant
+        // Activer le bouton pour passer à la question suivante
         const nextButton = document.getElementById('next-question-btn');
         if (nextButton) {
             nextButton.disabled = false;
             nextButton.classList.add('animate__animated', 'animate__bounceIn');
             nextButton.addEventListener('click', () => {
                 currentQuestionIndex++;
-                console.log('Showing next question... 319');
                 showQuestion();
             }, { once: true });
         }
-    }, 1000);
+    } catch (error) {
+        console.error('Erreur lors de l\'enregistrement de la réponse :', error);
+        showFeedback('Une erreur est survenue : ' + error.message, 'error');
+    }
 }
+
+
 
 function showQuizComplete() {
     console.log('Showing quiz complete...');
@@ -325,12 +353,12 @@ function showQuizComplete() {
         container.innerHTML = `
             <div class="text-center py-12 animate__animated animate__fadeIn">
                 <div class="text-6xl mb-8 animate__animated animate__bounceIn">🎉</div>
-                <h2 class="text-3xl font-bold gradient-text mb-4">Quiz Terminé !</h2>
-                <p class="text-gray-600 mb-8">Félicitations ! Vous avez complété toutes les questions.</p>
+                <h2 class="text-3xl font-bold gradient-text mb-4">${t('quiz_complete')}</h2>
+                <p class="text-gray-600 mb-8">${t('congratulations')}</p>
                 <button onclick="location.reload()" 
                         class="bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-xl font-semibold 
                         transform transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                    Recommencer
+                        ${t('try_again')}
                 </button>
             </div>
         `;
@@ -359,7 +387,8 @@ function createConfetti() {
     setTimeout(() => confetti.remove(), 3000);
 }
 
-function showFeedback(message, type = 'info') {
+function showFeedback(messageKey, type = 'info') {
+    const message = t(messageKey); // Récupère la traduction du message
     console.log('Showing feedback:', message);
     const feedbackContainer = document.getElementById('feedback-container');
     const feedback = document.createElement('div');
@@ -376,6 +405,7 @@ function showFeedback(message, type = 'info') {
     }, 3000);
 }
 
+
 function updateScore(points) {
     console.log('Updating score by:', points);
     if (points === 0) {
@@ -383,6 +413,7 @@ function updateScore(points) {
         return;
     }
     const totalPoints = document.getElementById('total-points');
+    const totalPoints2 = document.getElementById('total-points2');
     const currentPoints = parseInt(totalPoints.textContent);
     const newPoints =currentPoints + points; // Empêcher le score d'aller en dessous de 0
     
@@ -396,16 +427,18 @@ function updateScore(points) {
         if ((step > 0 && count >= newPoints) || (step < 0 && count <= newPoints)) {
             count = newPoints;
             totalPoints.textContent = Math.round(count);
+            totalPoints2.textContent = Math.round(count);
             return;
         }
         totalPoints.textContent = Math.round(count);
+        totalPoints2.textContent = Math.round(count);
         requestAnimationFrame(updateCounter);
     }
     
     requestAnimationFrame(updateCounter);
     
     // Mise à jour de la barre de progression
-    const progressBar = document.getElementById('rewards-progress-bar');
+    const progressBar = document.getElementById('scrore-progress-bar');
     const percentage = (newPoints / MAX_POINTS) * 100;
     progressBar.style.width = percentage + '%';
     
@@ -427,8 +460,8 @@ function updateScore(points) {
 }
 
 function updateRewardsProgress(currentPoints) {
-    console.log('Updating rewards progress...');
-    const progressBar = document.getElementById('rewards-progress-bar');
+    console.log('Updating rewards progress...  '+currentPoints);
+    const progressBar = document.getElementById('scrore-progress-bar');
     const progressText = document.getElementById('rewards-progress-text');
     const rewardsContainer = document.getElementById('rewards-container');
     
@@ -486,68 +519,159 @@ function getTicketIcon(ticketName) {
 
 async function loadRewards() {
     try {
-        const response = await axios.get('https://ayoba-yamo-quizz.zen-apps.com/api/index.php/?lang=${preferredLang}&endpoint=get_all_tickets');
+        const response = await axios.get(`https://ayoba-yamo-quizz.zen-apps.com/api/index.php?lang=${preferredLang}&endpoint=get_all_tickets`);
         const rewards = response.data;
         const rewardsContainer = document.getElementById('rewards-container');
-        rewardsContainer.innerHTML = ''; // Clear previous rewards
-        
+
+        if (!rewards || rewards.length === 0) {
+            rewardsContainer.innerHTML = `<p class="text-center text-gray-500">Aucune récompense disponible.</p>`;
+            return;
+        }
+
+        // Trouver le nombre de points requis pour la plus grande récompense
+        const totalPoints = Math.max(...rewards.map(reward => parseInt(reward.points_required, 10)));
+
+        rewardsContainer.innerHTML = ''; // Vider les récompenses précédentes
+
+        // Afficher les récompenses
         rewards.forEach(reward => {
             const rewardElement = document.createElement('div');
-            rewardElement.className = 'reward-item p-4 border-b';
+            rewardElement.className = 'reward-item p-4 border-b flex items-start space-x-4';
+
+            const icon = reward.icon || '🎁'; // Icône par défaut
+
             rewardElement.innerHTML = `
-                <h3 class="text-xl font-bold">${reward.name}</h3>
-                <p>Points Required: ${reward.points_required}</p>
-                <p>Reward: ${reward.reward}</p>
-                <p>Quantity: ${reward.quantity}</p>
-                <p>Expiration Date: ${reward.expiration_date || 'No expiration'}</p>
+                <div class="text-3xl">${icon}</div>
+                <div>
+                    <h3 class="text-xl font-bold">${reward.name}</h3>
+                    <p>Points Requis: ${reward.points_required}</p>
+                    <p>Récompense: ${reward.reward}</p>
+                    <p>Quantité: ${reward.quantity}</p>
+                    <p>Date d'expiration: ${reward.expiration_date ? new Date(reward.expiration_date).toLocaleDateString(preferredLang) : 'Aucune expiration'}</p>
+                </div>
             `;
+
             rewardsContainer.appendChild(rewardElement);
         });
+
+        // Ajouter les marqueurs de récompense
+       // addRewardMarkers(rewards, totalPoints);
     } catch (error) {
         console.error('Erreur lors du chargement des récompenses:', error);
     }
 }
 
-function addRewardMarkers(rewards, totalPoints) {
-    const progressBar = document.getElementById('rewards-progress-bar');
-    const progressContainer = progressBar.parentElement;
-
-    rewards.forEach(reward => {
-        const marker = document.createElement('div');
-        marker.className = 'reward-marker';
-        marker.style.position = 'absolute';
-        marker.style.top = '-10px';
-        marker.style.width = '20px';
-        marker.style.height = '20px';
-        marker.style.backgroundColor = 'transparent';
-        marker.style.borderRadius = '50%';
-
-        const positionPercentage = (reward.points_required / totalPoints) * 100;
-        marker.style.left = `calc(${positionPercentage}% - 10px)`; // Center the marker
-
-        const icon = document.createElement('span');
-        icon.className = 'reward-icon';
-        icon.innerHTML = getRewardIcon(reward.reward); // Assuming a function that maps rewards to icons
-        marker.appendChild(icon);
-
-        progressContainer.appendChild(marker);
-    });
-}
 
 function getRewardIcon(rewardName) {
     const icons = {
-        'Special Badge': '🏅',
-        'Premium Access': '👑',
-        'Exclusive Content': '⭐'
+        "Special Badge": "🏅",
+        "Premium Access": "👑",
+        "Exclusive Content": "⭐"
     };
-    return icons[rewardName] || '🎁';
+    return icons[rewardName] || '🎁'; // Icône par défaut si le nom de la récompense ne correspond pas
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+
+async function submitAnswer(userId, questionId, answerId) {
+    const API_BASE_URL = 'https://ayoba-yamo-quizz.zen-apps.com/api/index.php';
+    const endpoint = `${API_BASE_URL}?endpoint=submit_answer`;
+
+    try {
+        // Préparation des données avec FormData
+        const formData = new FormData();
+        formData.append('user_id', userId);       // Identifiant de l'utilisateur
+        formData.append('question_id', questionId); // Identifiant de la question
+        formData.append('answer_id', answerId);     // Identifiant de la réponse choisie
+
+        // Envoi de la requête POST au backend avec Axios
+        const response = await axios.post(endpoint, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data', // Indiquer que les données sont au format FormData
+            },
+        });
+
+        console.log('Réponse du serveur pour submitAnswer:', response.data);
+
+        return response.data; // Renvoie les données pour traitement dans `handleAnswer`
+    } catch (error) {
+        // Gestion des erreurs avec Axios
+        if (error.response) {
+            // Erreur côté serveur (status HTTP non-200)
+            console.error('Erreur côté serveur:', error.response.data);
+            throw new Error(error.response.data.error || 'Erreur lors de l\'enregistrement de la réponse');
+        } else if (error.request) {
+            // Aucune réponse reçue du serveur
+            console.error('Aucune réponse reçue du serveur:', error.request);
+            throw new Error('Impossible de contacter le serveur. Vérifiez votre connexion.');
+        } else {
+            // Autre type d'erreur
+            console.error('Erreur inconnue:', error.message);
+            throw new Error('Une erreur inconnue est survenue : ' + error.message);
+        }
+    }
+}
+
+function updateLinearProgress(currentPoints, totalPoints) {
+    const progressBar = document.getElementById('scrore-progress-bar');
+    const percentage = (currentPoints / totalPoints) * 100;
+    progressBar.style.width = `${percentage}%`;
+    document.getElementById('rewards-progress-text').textContent = `${currentPoints}/${totalPoints} points`;
+}
+
+function processAnswerFeedback(isCorrect, pointsAwarded) {
+    if (isCorrect) {
+        // Feedback pour une bonne réponse
+        showFeedback(t('correct_answer_feedback').replace('{points}', pointsAwarded), 'success');
+        createConfetti();
+        updateScore(pointsAwarded);
+
+        // Mise à jour du compteur de bonnes réponses
+        const correctAnswers = document.getElementById('correct-answers');
+        correctAnswers.textContent = parseInt(correctAnswers.textContent) + 1;
+    } else {
+        // Feedback pour une mauvaise réponse
+        showFeedback(t('wrong_answer_feedback').replace('{points}', '1'), 'error');
+        updateScore(-1); // Réduire 1 point pour une mauvaise réponse
+    }
+}
+async function loadRewardData() {
+    try {
+        // Charger les données depuis l'API
+        const response = await axios.get('https://ayoba-yamo-quizz.zen-apps.com/api/index.php?lang=fr&endpoint=get_all_tickets');
+        const reward = response.data[0]; // Supposons qu'on prend la première récompense
+
+        const totalQuantity = 100; // Total fixe pour l'exemple
+        const currentQuantity = parseInt(reward.quantity, 10); // Quantité actuelle
+        const name = reward.name; // Nom de la récompense
+
+        // Calcul de la progression en pourcentage
+        const percentage = (currentQuantity / totalQuantity) * 100;
+        const radius = 45; // Rayon du cercle
+        const circumference = 2 * Math.PI * radius;
+
+        // Mise à jour du cercle
+        const progressCircle = document.getElementById('reward-progress-circle');
+        const offset = circumference - (percentage / 100) * circumference;
+        progressCircle.style.strokeDashoffset = offset;
+
+        // Mise à jour des textes
+        document.getElementById('reward-name').textContent = name;
+        document.getElementById('reward-quantity').textContent = `${currentQuantity} / ${totalQuantity}`;
+    } catch (error) {
+        console.error('Erreur lors du chargement des données de récompense:', error);
+    }
+}
+
+// Appeler la fonction pour charger et afficher les données
+loadRewardData();
+
+
+document.addEventListener('DOMContentLoaded', async () => {
     console.log('Document loaded...');
+  
     initializeUI();
-    loadRewards();
-    loadTickets().then(tickets => {
-        addRewardMarkers(tickets, 500);
-    });
+
+    //loadRewards();
+  
+
 });

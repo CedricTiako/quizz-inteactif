@@ -1,0 +1,30 @@
+{
+    "en": {
+        "quiz_complete": "Quiz Complete!",
+        "congratulations": "Congratulations! You have completed all questions.",
+        "try_again": "Try Again",
+        "loading_error": "Error loading questions. Please try again.",
+        "loading_stats_error": "Error loading statistics. Please try again.",
+        "loading_rewards_error": "Error loading rewards.",
+        "account_created_success": "Account created successfully!",
+        "account_creation_error": "Error creating account.",
+        "question_id_missing": "Error: Missing question ID.",
+        "loading_answers_error": "Error loading answers.",
+        "correct_answer_feedback": "Correct answer! 🎉 You earned {points} points.",
+        "wrong_answer_feedback": "Wrong answer 😕 You lost {points} points."
+    },
+    "fr": {
+        "quiz_complete": "Quiz Terminé !",
+        "congratulations": "Félicitations ! Vous avez complété toutes les questions.",
+        "try_again": "Recommencer",
+        "loading_error": "Erreur lors du chargement des questions. Veuillez réessayer.",
+        "loading_stats_error": "Erreur lors du chargement des statistiques. Veuillez réessayer.",
+        "loading_rewards_error": "Impossible de charger les récompenses.",
+        "account_created_success": "Compte créé avec succès !",
+        "account_creation_error": "Erreur lors de la création du compte.",
+        "question_id_missing": "Erreur : ID de la question manquant.",
+        "loading_answers_error": "Impossible de charger les réponses.",
+        "correct_answer_feedback": "Bonne réponse ! 🎉 Vous avez gagné {points} points.",
+        "wrong_answer_feedback": "Mauvaise réponse 😕 Vous avez perdu {points} points."
+    }
+}
