@@ -1,24 +1,28 @@
 /* Variables CSS */
 :root {
-    --primary-color: #6366F1;
-    --secondary-color: #8B5CF6;
-    --accent-color: #F59E0B;
+    --primary-color: #3498db; /* Bleu vif */
+    --secondary-color: #2ecc71; /* Vert émeraude */
+    --accent-color: #e74c3c; /* Rouge vif */
     --success-color: #10B981;
     --error-color: #EF4444;
-    --background-color: #0F172A;
-    --text-color: #F1F5F9;
-    --card-bg: rgba(30, 41, 59, 0.7);
+    --background-color: #ecf0f1; /* Gris clair */
+    --text-color: #2c3e50; /* Gris foncé */
+    --card-bg: rgba(255, 255, 255, 0.9); /* Fond de carte lumineux */
 }
 
-/* Styles de base */
+/* Design moderne et épuré */
+
 body {
-    background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    background-color: var(--background-color);
     color: var(--text-color);
     font-family: 'Inter', sans-serif;
-    line-height: 1.5;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     min-height: 100vh;
-    position: relative;
-    overflow-x: hidden;
 }
 
 body::before {
@@ -33,6 +37,56 @@ body::before {
         radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 40%);
     pointer-events: none;
     z-index: -1;
+}
+
+header, footer {
+    width: 100%;
+    padding: 20px;
+    background-color: var(--primary-color);
+    color: var(--background-color);
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+header {
+    border-radius: 8px;
+}
+
+main {
+    flex: 1;
+    width: 100%;
+    max-width: 1200px;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+button {
+    background: var(--accent-color);
+    color: var(--background-color);
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background: var(--secondary-color);
 }
 
 /* Effet verre amélioré */
@@ -449,4 +503,67 @@ body::before {
     border-width: 5px;
     border-style: solid;
     border-color: var(--background-color) transparent transparent transparent;
+}
+
+/* Styles pour le modal de téléphone */
+#phoneModal {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+#phoneModal .bg-white {
+    background-color: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    padding: 24px;
+    width: 90%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#phoneModal h2 {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    margin-bottom: 16px;
+}
+
+#phoneModal input {
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 12px;
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+#phoneModal button {
+    background-color: var(--accent-color);
+    color: var(--background-color);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    align-self: center;
+}
+
+#phoneModal button:hover {
+    background-color: var(--secondary-color);
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal.active {
+    display: flex;
 }

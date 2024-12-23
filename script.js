@@ -115,7 +115,7 @@ async function loadAndDisplayStats() {
         const totalPointsElement = document.getElementById('total-points');
         const totalPointsElement2 = document.getElementById('total-points2');
         const correctAnswersElement = document.getElementById('correct-answers');
-        
+        updateLinearProgress( data.user.total_points_earned || 0,500);
         if (totalPointsElement) {
             totalPointsElement.textContent = data.user.total_points_earned || 0;
             totalPointsElement2.textContent = data.user.total_points_earned || 0;
@@ -199,28 +199,29 @@ async function loadTickets() {
     }
 }
 
-async function createUser(username, email, password) {
-    console.log('Creating user...');
+
+
+async function createUser(phone) {
+    console.log('Creating user with axios...');
     try {
-        const response = await fetch(`${API_BASE_URL}?lang=${preferredLang}&endpoint=users`, {
-            method: 'POST',
+        const formData = new FormData();
+        formData.append('phone', phone);
+
+        const response = await axios.post(`${API_BASE_URL}?lang=${preferredLang}&endpoint=users`, formData, {
             headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                username,
-                email,
-                password
-            })
+                'Content-Type': 'multipart/form-data'
+            }
         });
 
-        if (!response.ok) {
+        if (response.status !== 200) {
             throw new Error('Erreur lors de la création de l\'utilisateur');
         }
 
-        const data = await response.json();
+        const data = response.data;
         console.log('User created:', data);
         showFeedback('Compte créé avec succès !', 'success');
+        localStorage.setItem('phone', phone);
+        console.log('Phone number stored in localStorage:', phone);
         return data;
     } catch (error) {
         console.error('Erreur:', error);
@@ -665,13 +666,71 @@ async function loadRewardData() {
 // Appeler la fonction pour charger et afficher les données
 loadRewardData();
 
+// Fonction pour obtenir les paramètres de l'URL
+function getQueryParams() {
+    const params = new URLSearchParams(window.location.search);
+    return Object.fromEntries(params.entries());
+}
 
-document.addEventListener('DOMContentLoaded', async () => {
+// Vérifier et stocker le paramètre 'phone' dans le localStorage
+(function storePhoneParam() {
+    const queryParams = getQueryParams();
+    if (queryParams.phone) {
+        localStorage.setItem('phone', queryParams.phone);
+        console.log('Phone number stored in localStorage:', queryParams.phone);
+    }
+})();
+
+// Fonction pour afficher le modal si le numéro de téléphone n'est pas dans le localStorage
+function checkPhoneInLocalStorage() {
+    const phone = localStorage.getItem('phone');
+    if (!phone) {
+        const phoneModal = document.getElementById('phoneModal');
+        phoneModal.classList.add('active');
+    }
+}
+
+// Événement pour enregistrer le numéro de téléphone
+function setupPhoneModal() {
+    const savePhoneBtn = document.getElementById('savePhoneBtn');
+    savePhoneBtn.addEventListener('click', () => {
+        const phoneInput = document.getElementById('phoneInput').value;
+        if (phoneInput) {
+            createUser(phoneInput).then(data => {
+                userId = data.user_id;
+                console.log('User ID:', userId);
+            });
+            localStorage.setItem('phone', phoneInput);
+            document.getElementById('phoneModal').classList.remove('active');
+            console.log('Phone number saved:', phoneInput);
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
     console.log('Document loaded...');
   
     initializeUI();
 
     //loadRewards();
   
-
+    checkPhoneInLocalStorage();
+    setupPhoneModal();
 });
+
+async function fetchUserIdByPhone(phone) {
+    console.log('Fetching user by phone...');
+    try {
+        const response = await fetch(`${API_BASE_URL}?lang=${preferredLang}&endpoint=users&phone=${phone}`);
+        if (!response.ok) {
+            throw new Error('Erreur lors de la récupération de l\'utilisateur');
+        }
+        const data = await response.json();
+        console.log('User fetched:', data);
+        return data.user_id;
+    } catch (error) {
+        console.error('Erreur:', error);
+        showFeedback('user_fetch_error', 'error');
+        throw error;
+    }
+}

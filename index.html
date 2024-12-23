@@ -9,14 +9,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link rel="stylesheet" href="styles.css">
     <style>
-        :root {
-            --primary-color: #4F46E5;
-            --secondary-color: #7C3AED;
-            --accent-color: #F59E0B;
-            --background-color: #1F2937;
-            --text-color: #F3F4F6;
-        }
 
+
+        :root {
+            --primary-color: #0061A2;
+            --secondary-color: #8B5CF6;
+            --accent-color: #FFCC00;
+            --success-color: #10B981;
+            --error-color: #EF4444;
+            --background-color: #0F172A;
+            --text-color: #F1F5F9;
+            --card-bg: rgba(30, 41, 59, 0.7);
+        }
         body {
             background-color: var(--background-color);
             color: var(--text-color);
@@ -81,7 +85,7 @@
             transform: scale(1.1);
         }
 
-        circle {
+circle {
     transform: rotate(-90deg);
     transform-origin: 50% 50%;
 }
@@ -146,12 +150,12 @@ circle {
     <!-- Effet de particules -->
     <div class="particles" id="particles"></div>
 
-    <div class="container mx-auto px-4 py-8">
+    <div class="container py-2">
 
 
-        <div class="grid lg:grid-cols-3 gap-8">
+        <div class="grid lg:grid-cols-3 gap-4">
             <!-- Section Stats -->
-            <div class="lg:col-span-1 glass-effect rounded-2xl p-6 text-center">
+            <div class="lg:col-span-1 glass-effect rounded-2xl p-2 text-center">
                 <!-- Titre principal -->
                 <h2 class="text-lg font-bold text-gray-200 mb-4">Vos statistiques</h2>
                 
@@ -204,8 +208,7 @@ circle {
                 <div class="glass-effect rounded-2xl p-8">
                     <!-- Barre de progression globale -->
                     <div class="relative mb-4">
-                        <h2 class="text-lg font-bold text-gray-200 mb-2">Progression</h2>
-                        <div class="h-4 bg-gray-800 rounded-full overflow-hidden">
+                     <div class="h-4 bg-gray-800 rounded-full overflow-hidden">
                             <div id="scrore-progress-bar" class="h-full progress-bar" style="width: 0%;"></div>
                         </div>
                         <div class="flex justify-between mt-1 text-sm text-gray-400">
@@ -248,6 +251,16 @@ circle {
 
 
     </div>
+
+    <!-- Modal pour entrer le numéro de téléphone -->
+    <div id="phoneModal" class="modal hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h2 class="text-xl font-bold mb-4">Entrez votre numéro de téléphone</h2>
+            <input type="tel" id="phoneInput" class="border border-gray-300 rounded px-3 py-2 w-full mb-4 color-black" style="color: black;"  placeholder="Votre numéro de téléphone">
+            <button id="savePhoneBtn" class="bg-blue-500 text-white px-4 py-2 rounded">Enregistrer</button>
+        </div>
+    </div>
+
 
     <!-- Container pour les messages de feedback -->
     <div id="feedback-container" class="fixed top-4 right-4 z-50"></div>
