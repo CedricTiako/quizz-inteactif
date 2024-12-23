@@ -615,6 +615,7 @@ async function submitAnswer(userId, questionId, answerId) {
 function updateLinearProgress(currentPoints, totalPoints) {
     const progressBar = document.getElementById('scrore-progress-bar');
     const percentage = (currentPoints / totalPoints) * 100;
+    console.log('Updating linear progress... percentage:', percentage);
     progressBar.style.width = `${percentage}%`;
     document.getElementById('rewards-progress-text').textContent = `${currentPoints}/${totalPoints} points`;
 }
