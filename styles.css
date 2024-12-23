@@ -172,8 +172,8 @@ button:hover {
 
 /* Barre de progression */
 .progress-bar {
-    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-    box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+    background-color: #ffcc00;
+    box-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
     transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

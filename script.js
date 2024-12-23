@@ -1,7 +1,7 @@
 const API_BASE_URL = 'https://ayoba-yamo-quizz.zen-apps.com/api/index.php';
 
 let currentQuestionIndex = 0;
-let userId = 1; 
+let userId = localStorage.getItem('userId') || 1; 
 let questions = [];
 let currentQuestion = null;
 let hasAnswered = false;
@@ -105,7 +105,10 @@ async function initializeUIHandler() {
 async function loadAndDisplayStats() {
     console.log('Loading user stats...');
     try {
-        const response = await axios.get(`${API_BASE_URL}?lang=${preferredLang}&endpoint=user_stats&user_id=${userId}`);
+
+        const userIdT =await fetchUserIdByPhone(localStorage.getItem('phone'))??1;
+        console.log('userIdT:', userIdT);
+        const response = await axios.get(`${API_BASE_URL}?lang=${preferredLang}&endpoint=user_stats&user_id=${userIdT}`);
         if (!response) throw new Error('Failed to load user stats');
         //const data = await response.json();
         const data = response.data;
@@ -221,6 +224,8 @@ async function createUser(phone) {
         console.log('User created:', data);
         showFeedback('Compte créé avec succès !', 'success');
         localStorage.setItem('phone', phone);
+        let userIdT =await fetchUserIdByPhone(localStorage.getItem('phone'));
+        localStorage.setItem('userId', userIdT); 
         console.log('Phone number stored in localStorage:', phone);
         return data;
     } catch (error) {
@@ -302,8 +307,11 @@ async function showQuestion() {
 }
 
 async function handleAnswer(answerId, isCorrect, button) {
+   
+    const userIdT =await fetchUserIdByPhone(localStorage.getItem('phone'))??1;
+        console.log('userIdT:', userIdT);
     console.log('Réponse sélectionnée :', answerId, 'Correcte :', isCorrect);
-
+    userId=userIdT;
     if (hasAnswered) return; // Éviter les doubles réponses
     hasAnswered = true;
 
@@ -698,7 +706,8 @@ function setupPhoneModal() {
         const phoneInput = document.getElementById('phoneInput').value;
         if (phoneInput) {
             createUser(phoneInput).then(data => {
-                userId = data.user_id;
+               // userId = data.user_id;
+                //localStorage.setItem('userId',userId)
                 console.log('User ID:', userId);
             });
             localStorage.setItem('phone', phoneInput);
@@ -711,15 +720,18 @@ function setupPhoneModal() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Document loaded...');
   
-    initializeUI();
+
 
     //loadRewards();
   
     checkPhoneInLocalStorage();
     setupPhoneModal();
+    userId = localStorage.getItem('userId') || 1; 
+    initializeUI();
 });
 
 async function fetchUserIdByPhone(phone) {
+    if (phone==null) return null;
     console.log('Fetching user by phone...');
     try {
         const response = await fetch(`${API_BASE_URL}?lang=${preferredLang}&endpoint=users&phone=${phone}`);
