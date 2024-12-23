@@ -164,7 +164,7 @@ button:hover {
 .stats-card {
     background: var(--background-color);
     border-radius: 20px;
-    padding: 1rem;
+    padding: 1.5rem;
     text-align: center;
     transition: transform 0.3s ease;
 }

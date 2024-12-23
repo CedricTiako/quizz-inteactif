@@ -455,8 +455,8 @@ function updateScore(points) {
     progressBar.style.width = percentage + '%';
     
     // Mise à jour du texte de progression
-    const progressText = document.getElementById('rewards-progress-text');
-    progressText.textContent = `${newPoints}/${MAX_POINTS} points`;
+    // const progressText = document.getElementById('rewards-progress-text');
+    // progressText.textContent = `${newPoints}/${MAX_POINTS} points`;
     
     // Effet visuel pour les points perdus
     if (points < 0) {
@@ -474,7 +474,7 @@ function updateScore(points) {
 function updateRewardsProgress(currentPoints) {
     console.log('Updating rewards progress...  '+currentPoints);
     const progressBar = document.getElementById('scrore-progress-bar');
-    const progressText = document.getElementById('rewards-progress-text');
+    const progressText = document.getElementById('rewards-progress-text')??null;
     const rewardsContainer = document.getElementById('rewards-container');
     
     if (!progressBar || !progressText || !rewardsContainer || !tickets.length) return;
@@ -496,14 +496,14 @@ function updateRewardsProgress(currentPoints) {
     }
 
     progressBar.style.width = `${progressPercentage}%`;
-    
+    /*
     if (!nextTicket) {
         progressText.textContent = `Niveau Maximum Atteint! (${currentPoints} points)`;
     } else {
         const pointsNeeded = nextTicket.points_required - currentPoints;
         progressText.textContent = `${pointsNeeded} points pour ${nextTicket.name}`;
     }
-
+*/
     rewardsContainer.innerHTML = sortedTickets.map(ticket => `
         <div class="reward-item ${currentPoints >= ticket.points_required ? 'opacity-100' : 'opacity-50'} 
                     flex items-center space-x-2 p-2 rounded-lg transition-all duration-300">
@@ -628,7 +628,7 @@ function updateLinearProgress(currentPoints, totalPoints) {
     const percentage = (currentPoints / totalPoints) * 100;
     console.log('Updating linear progress... percentage:', percentage);
     progressBar.style.width = `${percentage}%`;
-    document.getElementById('rewards-progress-text').textContent = `${currentPoints}`;
+   // document.getElementById('rewards-progress-text').textContent = `${currentPoints}`;
 }
 
 function processAnswerFeedback(isCorrect, pointsAwarded) {
@@ -691,6 +691,7 @@ function getQueryParams() {
     const queryParams = getQueryParams();
     if (queryParams.phone) {
         localStorage.setItem('phone', queryParams.phone);
+        document.getElementById('numeroP').textContent='Hello, '+ queryParams.phone;
         console.log('Phone number stored in localStorage:', queryParams.phone);
     }
 })();
