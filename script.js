@@ -250,12 +250,15 @@ async function showQuestion() {
         // Mise à jour de l'indicateur de progression
         document.getElementById('current-question').textContent = currentQuestionIndex + 1;
         document.getElementById('total-questions').textContent = questions.length;
-        
+        const progressBar2 = document.getElementById('progress-bar');
         // Mise à jour de la barre de progression
         const progressBar = document.getElementById('scrore-progress-bar');
         const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
         progressBar.style.width = `${progress}%`;
         
+        progressBar2.style.width = `${progress}%`;
+      
+        console.log(progress)
         // Affichage de la question
         const questionContainer = document.getElementById('question-container');
         questionContainer.textContent = currentQuestion.question_text;
@@ -372,7 +375,7 @@ function showQuizComplete() {
             </div>
         `;
         
-        createConfetti();
+       // createConfetti();
     }
 }
 
@@ -625,14 +628,14 @@ function updateLinearProgress(currentPoints, totalPoints) {
     const percentage = (currentPoints / totalPoints) * 100;
     console.log('Updating linear progress... percentage:', percentage);
     progressBar.style.width = `${percentage}%`;
-    document.getElementById('rewards-progress-text').textContent = `${currentPoints}/${totalPoints} points`;
+    document.getElementById('rewards-progress-text').textContent = `${currentPoints}`;
 }
 
 function processAnswerFeedback(isCorrect, pointsAwarded) {
     if (isCorrect) {
         // Feedback pour une bonne réponse
         showFeedback(t('correct_answer_feedback').replace('{points}', pointsAwarded), 'success');
-        createConfetti();
+      //  createConfetti();
         updateScore(pointsAwarded);
 
         // Mise à jour du compteur de bonnes réponses
@@ -666,7 +669,9 @@ async function loadRewardData() {
 
         // Mise à jour des textes
         document.getElementById('reward-name').textContent = name;
-        document.getElementById('reward-quantity').textContent = `${currentQuantity} / ${totalQuantity}`;
+        document.getElementById('reward-quantity').textContent = `${currentQuantity}`;
+
+        // document.getElementById('reward-quantity').textContent = `${currentQuantity} / ${totalQuantity}`;
     } catch (error) {
         console.error('Erreur lors du chargement des données de récompense:', error);
     }
