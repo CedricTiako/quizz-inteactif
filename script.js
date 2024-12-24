@@ -274,6 +274,8 @@ async function showQuestion() {
         // Définissez l'attribut href dynamiquement
         if (linkElement) {
         linkElement.href = currentQuestion.url_indice;
+ 
+        setupPreview(currentQuestion.url_indice);
         }
         // Affichage des réponses
         const answersContainer = document.getElementById('answers-container');
@@ -944,6 +946,8 @@ function createMediaModal_old(mediaUrl) {
   document.getElementById('urllink').addEventListener('click', function(event) {
     event.preventDefault(); // Empêche la navigation par défaut
     const mediaUrl = this.href; // Récupère le lien contenu dans l'attribut href
+    // Utilisation de la fonction
+    
     createMediaModal(mediaUrl); // Appelle la fonction avec le lien récupéré
   });
 
@@ -1129,6 +1133,64 @@ function checkPoints() {
         apiCalled = true; // Marque l'API comme appelée
     }
 }
+
+
+function setupPreview(url) {
+      const previewContainer = document.getElementById("preview-container");
+        if (!previewContainer) {
+            console.error("La div avec l'id 'preview-container' est introuvable.");
+            return;
+        }
+
+        
+        
+        previewContainer.style.zIndex = "1000";
+
+        // Fonction pour vérifier si l'URL est une image
+        const isImage = (url) => {
+            return /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(url);
+        };
+
+        // Fonction pour vérifier si l'URL est une vidéo
+        const isVideo = (url) => {
+            return /\.(mp4|webm|ogg|mov)$/i.test(url);
+        };
+
+
+            if (isImage(url)) {
+                const img = document.createElement("img");
+                img.src = url;
+                img.alt = "Miniature";
+                img.style.width = "100%";
+                img.style.height = "100%";
+                img.style.objectFit = "cover";
+                previewContainer.appendChild(img);
+            } else if (isVideo(url)) {
+                const video = document.createElement("video");
+                video.src = url;
+                video.autoplay = true;
+                video.loop = true;
+                video.muted = true;
+                video.style.width = "100%";
+                video.style.height = "100%";
+                video.style.objectFit = "cover";
+                previewContainer.appendChild(video);
+            } else {
+                const message = document.createElement("div");
+                message.textContent = "Aucun aperçu disponible";
+                message.style.color = "gray";
+                message.style.textAlign = "center";
+                previewContainer.appendChild(message);
+            }
+      
+
+
+}
+
+
+
+
+
 
 // Surveille les changements des points toutes les secondes
 //setInterval(checkPoints, 1000);

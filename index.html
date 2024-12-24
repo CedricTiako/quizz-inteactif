@@ -117,11 +117,24 @@
                     <!-- Question Container -->
                     <div
                     id="question-container"
-                    class="mb-4 text-2xl font-bold text-center"
+                    class="mb-2 text-2xl font-bold text-center w-full"
                     >
                     <!-- La question sera injectée ici -->
                     </div>
-
+                    <a href="https://www.w3schools.com/html/mov_bbb.mp4" id="urllink" class="relative inline-block w-full">
+                        <div class="text-center mb-4 w-full h-12 rounded-xl flex items-center justify-between px-4" style="background-color: var(--text-color);">
+                            <b class="text-white font-normal">Découvrir l’indice ici</b>
+                            <!-- Conteneur pour la miniature -->
+                            <div id="preview-container" class="w-32 h-8 bg-white rounded-md overflow-hidden shadow-md ml-4 " style="background-color: #fff;">
+                                <!-- La miniature sera générée ici -->
+                            </div>
+                        </div>
+                    </a>
+                    
+                 
+                    
+                    
+                    
                     <!-- Réponses -->
                     <div
                     id="answers-container"
@@ -133,12 +146,7 @@
                     
                     <!-- Bouton suivant -->
                     <div class="mt-8 text-center">  
-                        <div class="text-center  mb-2">
-                    <a href="http://google.com" id="urllink">
-                        <b class="bluetext"  style="font-weight: normal;" >Découvre l’indice ici ></b>
-                    </a>
-                    
-                        </div>
+   
                     <button
                         id="next-question-btn"
                         class="cta-button disabled:opacity-50 disabled:cursor-not-allowed"
@@ -178,6 +186,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="script.js"></script>
-   
+  
   </body>
 </html>
