@@ -669,7 +669,7 @@ async function loadRewardData() {
         points_required=parseInt(reward.points_required, 10); 
         // Calcul de la progression en pourcentage
         const percentage = (currentQuantity / totalQuantity) * 100;
-        document.getElementById('points_required').textContent = `/${points_required}`;
+        document.getElementById('points_required').textContent = `${points_required}`;
    
 
         // Mise à jour du cercle
@@ -1019,3 +1019,86 @@ function createMediaModal_old(mediaUrl) {
     // Ajouter le modal au DOM
     document.body.appendChild(modal);
 }
+
+
+// Fonction pour afficher un pop-up avec des confettis
+function showVictoryPopup() {
+    // Crée une boîte modale
+    const modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+    modal.style.display = 'flex';
+    modal.style.justifyContent = 'center';
+    modal.style.alignItems = 'center';
+    modal.style.zIndex = '9999';
+
+    // Contenu de la boîte
+    const content = document.createElement('div');
+    content.style.backgroundColor = '#fff';
+    content.style.padding = '20px';
+    content.style.borderRadius = '8px';
+    content.style.textAlign = 'center';
+    content.innerHTML = '<h1>🎉 Félicitations ! 🎉</h1><p>Vous avez gagné votre ticket !</p>';
+
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+
+    // Ajoute des confettis (en utilisant une bibliothèque ou un simple effet CSS/JS)
+    // Exemple avec canvas pour confettis
+    const canvas = document.createElement('canvas');
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    modal.appendChild(canvas);
+
+    const confettiContext = canvas.getContext('2d');
+    const confettiPieces = Array.from({ length: 100 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        speedX: (Math.random() - 0.5) * 5,
+        speedY: Math.random() * 3 + 2,
+        color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+        size: Math.random() * 5 + 2,
+    }));
+
+    function drawConfetti() {
+        confettiContext.clearRect(0, 0, canvas.width, canvas.height);
+        confettiPieces.forEach(p => {
+            p.x += p.speedX;
+            p.y += p.speedY;
+            if (p.y > canvas.height) p.y = 0;
+
+            confettiContext.fillStyle = p.color;
+            confettiContext.beginPath();
+            confettiContext.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            confettiContext.fill();
+        });
+        requestAnimationFrame(drawConfetti);
+    }
+
+    drawConfetti();
+
+    // Ferme la boîte après 5 secondes
+    setTimeout(() => {
+        document.body.removeChild(modal);
+    }, 5000);
+}
+
+// Fonction pour vérifier les points
+function checkPoints() {
+    const totalPoints = parseInt(document.getElementById('total-points').innerText, 10);
+    const pointsRequired = parseInt(document.getElementById('points_required').innerText, 10);
+
+    if (totalPoints >= pointsRequired) {
+        showVictoryPopup();
+    }
+}
+
+// Surveille les changements des points toutes les secondes
+setInterval(checkPoints, 1000);
