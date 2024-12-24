@@ -1090,7 +1090,7 @@ function showVictoryPopup() {
 
 // Fonction pour appeler l'API
 function callApi() {
-    fetch(`https://ayoba-yamo-quizz.zen-apps.com/api/index.php?lang=fr&endpoint=set_tickets&user_id${userId}`, {
+    fetch(`https://ayoba-yamo-quizz.zen-apps.com/api/index.php?lang=fr&endpoint=set_tickets&user_id=${userId}`, {
         method: 'GET'
     })
     .then(response => response.json())
