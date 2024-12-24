@@ -174,9 +174,9 @@ button:hover {
     right: 20px;
     padding: 1rem 2rem;
     border-radius: 12px;
-    background: var(--card-bg);
+    background: var(--text-color);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--text-color);
+    color: var(--success-color);
     font-weight: 500;
     box-shadow: 
         0 8px 32px rgba(0, 0, 0, 0.3),
