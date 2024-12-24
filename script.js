@@ -347,7 +347,7 @@ async function showQuestion() {
       nextButton.classList.remove("hover:scale-105");
     }
   } else {
-    showQuizComplete();
+    //showQuizComplete();
   }
 }
 
