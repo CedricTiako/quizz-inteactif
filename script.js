@@ -1361,11 +1361,13 @@ function otpVerification() {
     // alert("OTP Verified Successfully!");
     showFeedback("OTP Verified Successfully!", "success");
     localStorage.setItem("otp_verify", "true");
-    refreshPage();
+   
     const modal = document.getElementById("otp-modal");
     if (modal) {
       modal.remove();
-    }
+      refreshPage();
+    } 
+    
   } else {
     showFeedback("Invalid OTP. Please try again.", "error");
     //alert("Invalid OTP. Please try again.");
