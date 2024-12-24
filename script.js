@@ -1376,8 +1376,10 @@ async function generateOtp(phoneNumber) {
   const otp = Math.floor(100000 + Math.random() * 900000).toString(); // Génère un OTP à 6 chiffres
   localStorage.setItem("otpCode", otp);
 
-  const content = `Bonjour, ${otp} est votre numéro de validation.`;
-  const destinationPhone = phoneNumber;
+  const spacedOtp = otp.split('').join(' ');
+  const content =`Salut, ${spacedOtp} est votre numéro de validation.`;
+  let destinationPhone = phoneNumber.startsWith('237') ? phoneNumber : `237${phoneNumber}`;
+
 
   try {
     const response = await fetch(
@@ -1390,7 +1392,7 @@ async function generateOtp(phoneNumber) {
         body: new URLSearchParams({
           content: content,
           destinationPhone: destinationPhone,
-          senderID: "Ayoba 237",
+          senderID: "infos",
         }),
       }
     );
