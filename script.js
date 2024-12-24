@@ -1038,12 +1038,25 @@ function showVictoryPopup() {
     // Contenu de la boîte
     const content = document.createElement('div');
     content.style.backgroundColor = '#fff';
-    content.style.backgroundImages = 'win.jpg';
     content.style.padding = '20px';
     content.style.borderRadius = '8px';
     content.style.textAlign = 'center';
-    content.innerHTML = '<h1>🎉 Félicitations ! 🎉</h1><p>Vous avez gagné votre ticket !</p>';
+    content.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+    content.innerHTML = `
+        <h1>🎉 Félicitations ! 🎉</h1>
+        <p>Vous avez gagné votre ticket !</p>
+    `;
 
+    // Ajoute une image en bas du message
+    const image = document.createElement('img');
+    image.src = 'win.jpg';
+    image.alt = 'Victoire';
+    image.style.marginTop = '20px';
+    image.style.width = '100%'; // Ajuste la largeur de l'image
+    image.style.maxWidth = '300px'; // Limite la taille maximale
+    image.style.borderRadius = '8px';
+
+    content.appendChild(image);
     modal.appendChild(content);
     document.body.appendChild(modal);
 
