@@ -124,6 +124,7 @@ button:hover {
 
 .answer-button:hover {
     transform: translateY(-2px);
+    color: black;
     box-shadow: 
     0 8px 20px #059669,
     0 0 0 0 1px #7ff8d2;
@@ -636,8 +637,8 @@ button:hover {
   }
 
   #answers-container button:hover {
-    background-color: var(--primary-color);
-    color: #fff;
+   
+    color:var(--text-color);
   }
 
   /* Question Suivante */

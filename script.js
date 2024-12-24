@@ -692,7 +692,14 @@ function getQueryParams() {
         localStorage.setItem('phone', queryParams.phone);
         document.getElementById('numeroP').textContent='Hello, '+ queryParams.phone;
         console.log('Phone number stored in localStorage:', queryParams.phone);
+    }else
+    {
+        localStorage.setItem('phone', queryParams.jid);
+        document.getElementById('numeroP').textContent='Hello, '+ queryParams.jid;
+        console.log('Phone number stored in localStorage:', queryParams.jid);
+  
     }
+
 })();
 
 // Fonction pour afficher le modal si le numéro de téléphone n'est pas dans le localStorage
