@@ -1038,6 +1038,7 @@ function showVictoryPopup() {
     // Contenu de la boîte
     const content = document.createElement('div');
     content.style.backgroundColor = '#fff';
+    content.style.backgroundImages = 'win.jpg';
     content.style.padding = '20px';
     content.style.borderRadius = '8px';
     content.style.textAlign = 'center';
@@ -1096,84 +1097,25 @@ function callApi() {
     .then(response => response.json())
     .then(data => {
         console.log('Réponse de l\'API :', data);
-        showRestartPopup(); // Affiche le pop-up de redémarrage après l'API
     })
     .catch(error => {
         console.error('Erreur lors de l\'appel à l\'API :', error);
     });
 }
-
-// Fonction pour afficher un pop-up de redémarrage
-function showRestartPopup() {
-    const modal = document.createElement('div');
-    modal.style.position = 'fixed';
-    modal.style.top = '0';
-    modal.style.left = '0';
-    modal.style.width = '100%';
-    modal.style.height = '100%';
-    modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-    modal.style.display = 'flex';
-    modal.style.justifyContent = 'center';
-    modal.style.alignItems = 'center';
-    modal.style.zIndex = '9999';
-
-    const content = document.createElement('div');
-    content.style.backgroundColor = '#fff';
-    content.style.padding = '20px';
-    content.style.borderRadius = '8px';
-    content.style.textAlign = 'center';
-    content.innerHTML = '<h1>Voulez-vous Continué ?</h1>';
-
-    const yesButton = document.createElement('button');
-    yesButton.textContent = 'Oui';
-    yesButton.style.margin = '10px';
-    yesButton.style.padding = '10px 20px';
-    yesButton.style.backgroundColor = '#28a745';
-    yesButton.style.color = '#fff';
-    yesButton.style.border = 'none';
-    yesButton.style.borderRadius = '5px';
-    yesButton.style.cursor = 'pointer';
-    yesButton.onclick = () => {
-        document.body.removeChild(modal);
-        resetGame(); // Réinitialise le jeu (ajoutez votre logique ici)
-    };
-
-    const noButton = document.createElement('button');
-    noButton.textContent = 'Non';
-    noButton.style.margin = '10px';
-    noButton.style.padding = '10px 20px';
-    noButton.style.backgroundColor = '#dc3545';
-    noButton.style.color = '#fff';
-    noButton.style.border = 'none';
-    noButton.style.borderRadius = '5px';
-    noButton.style.cursor = 'pointer';
-    noButton.onclick = () => {
-        document.body.removeChild(modal);
-    };
-
-    content.appendChild(yesButton);
-    content.appendChild(noButton);
-    modal.appendChild(content);
-    document.body.appendChild(modal);
-}
+// Déclare une variable pour suivre si l'API a été appelée
+let apiCalled = false;
 
 // Fonction pour vérifier les points
 function checkPoints() {
-    const totalPoints = parseInt(document.getElementById('total-points')?.innerText, 10);
-    const pointsRequired = parseInt(document.getElementById('points_required')?.innerText, 10);
+    const totalPoints = parseInt(document.getElementById('total-points').innerText, 10);
+    const pointsRequired = parseInt(document.getElementById('points_required').innerText, 10);
 
-    if (totalPoints >= pointsRequired) {
+    if (totalPoints >= pointsRequired && !apiCalled) {
         showVictoryPopup();
         callApi(); // Appelle l'API après la victoire
+        apiCalled = true; // Marque l'API comme appelée
     }
 }
 
 // Surveille les changements des points toutes les secondes
 setInterval(checkPoints, 1000);
-
-// Fonction pour réinitialiser le jeu (ajoutez votre logique spécifique ici)
-function resetGame() {
-    window.location.reload()
-    document.getElementById('total-points').innerText = '0';
-    document.getElementById('points_required').innerText = '10'; // Exemple de valeur par défaut
-}
