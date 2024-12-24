@@ -23,64 +23,90 @@
 
 
     <div class="container py-2">
-        <div class="text-center">
+        <div class="text-center" style="display: none;">
             <span id="numeroP" class="">Hello</span>
         </div>
         
-      <div class="grid lg:grid-cols-3 gap-2">
-        <div class="lg:col-span-1 glass-effect rounded-2xl p-2 text-center">
-          <!-- Barre de progression globale -->
-          <div class="relative mb-4">
-            <div class="flex justify-between mt-1 text-sm  bluetext">
-              <span style="font-weight: bold;"  >Il ne reste plus que </span>
-              <div style="color: #5C709E;font-weight: bold;">
-                <span id="reward-quantity" style="font-weight: bold;">0</span>
-                <span id="reward-name" class="">Récompense</span>
-              </div>
-         
-            </div>
-            <br>
-            <div class="h-4 bg-white border-['#ffcc00'] rounded-full overflow-hidden scrore-progress-bar-2">
-              <div
-                id="reward-progress-circle"
-                class="h-full progress-bar"
-                style="width: 0%"
-              ></div>
-            </div>
-          </div>
-        </div>
-        <!-- Section Stats -->
-    <!-- Section Stats -->
-    <div class="lg:col-span-2 glass-effect rounded-2xl  text-center flex justify-center items-center">
-        <div class="grid grid-cols-2 gap-4">
-        <div class="stats-card text-center">
-            <div>
-            <span class="stats-value text-2xl font-bold" id="total-points">0</span>/<span id="points_required">0</span>
-            </div>
-            <div class="text-sm bluetext">Score</div>
-        </div>
-        <div class="stats-card text-center">
-            <div class="stats-value text-2xl font-bold" id="correct-answers" style="color: #01e083;">
-            0
-            </div>
-            <div class="text-sm bluetext">Bonnes réponses</div>
-        </div>
-        </div>
-    </div>
-  
+      <div class="grid lg:grid-cols-3 gap-1">
 
+            <!-- Section Stats -->
+            <div class="lg:col-span-2 glass-effect rounded-2xl  text-center flex justify-center items-center" style="display: none;">
+                <div class="grid grid-cols-2 gap-4">
+                <div class="stats-card text-center">
+                    <div>
+                    <span class="stats-value text-2xl font-bold" id="total-points">0</span>/<span id="points_required">0</span>
+                    </div>
+                    <div class="text-sm bluetext">Score</div>
+                </div>
+                <div class="stats-card text-center">
+                    <!-- <div class="stats-value text-2xl font-bold" id="correct-answers" style="color: #01e083;"> -->
+                    0
+                    <!-- </div> -->
+                    <div class="text-sm bluetext">Bonnes réponses</div>
+                </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 glass-effect rounded-2xl text-center flex justify-center items-center">
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Carte Statistique 1 -->
+                    <div class="stats-card text-center flex flex-col justify-center items-center">
+                        <img src="10000.png" alt="Score Icon" >
+                    </div>
+                    <!-- Carte Statistique 2 -->
+                    <div class="stats-card text-center flex flex-col justify-center items-center">
+                        <img src="25000.png" alt="Correct Answers Icon">
+                    </div>
+                </div>
+            </div>
+            
+            
+  
+            <div class="lg:col-span-1 glass-effect rounded-2xl p-2 text-center">
+                <!-- Barre de progression globale -->
+                <div class="relative">
+                    <div class="flex justify-between mb-2 text-xl  bluetext">
+                        <span style="font-weight: bold;"  >Il ne reste plus que </span>
+                        <div style="color: #5C709E;font-weight: bold;">
+                            <span id="reward-quantity" style="font-weight: bold;">0</span>
+                            <span id="reward-name" class="">Récompense</span>
+                        </div>
+                
+                    </div>
+               
+                    <div class="h-4 bg-white border-['#ffcc00'] rounded-full overflow-hidden scrore-progress-bar-2">
+                    <div
+                        id="reward-progress-circle"
+                        class="h-full progress-bar"
+                        style="width: 0%"
+                    ></div>
+                    </div>
+                </div>
+            </div>
         <!-- Section Quiz -->
         <div class="lg:col-span-2">
           <div class="glass-effect rounded-2xl p-8">
+
+            <div class="flex items-center justify-between mb-2 " style="">
+
+                <div class="font-bold" style="color: black;">
+                    Score
+                    <span id="total-points" class="text-white font-bold text-xl" style="color: black;"
+                      >1</span
+                    >
+                    <!-- <span class="text-gray-600">/</span> -->
+                    <span id="points_required" class="bluetext" style="display: none;">10</span><!--  -->
+                  </div>
+                  <div class="text-white font-bold" style="color:#007A5E;">
+                    <span id="correct-answers" class="" > </span> Bonnes réponses
+                  </div>
+                  
+                 
+            </div>
+            <div class="w-full h-0.5 bg-blue-300 mb-4"></div>
+            
+
             <div class="flex items-center justify-between mb-8 " style="display: none;">
-              <!-- <div class="bluetext">
-                Question
-                <span id="current-question" class="text-white font-bold" style="color: var(--text-color)"
-                  >1</span
-                >
-                <span class="text-gray-600">/</span>
-                <span id="total-questions" class="bluetext">10</span>
-              </div> -->
               <div  class="w-48 h-1.5 bg-white rounded-full overflow-hidden progress-bar-2" style="display: none;">
                 <div id="progress-bar" class="h-full progress-bar"   style="width: 0%"></div>
               </div>
@@ -88,41 +114,41 @@
 
    
 
-            <!-- Question Container -->
-            <div
-              id="question-container"
-              class="mb-8 text-2xl font-bold text-center"
-            >
-              <!-- La question sera injectée ici -->
-            </div>
+                    <!-- Question Container -->
+                    <div
+                    id="question-container"
+                    class="mb-4 text-2xl font-bold text-center"
+                    >
+                    <!-- La question sera injectée ici -->
+                    </div>
 
-            <!-- Réponses -->
-            <div
-              id="answers-container"
-              class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center"
-            >
-              <!-- Les réponses seront injectées ici -->
+                    <!-- Réponses -->
+                    <div
+                    id="answers-container"
+                    class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center"
+                    >
+                    <!-- Les réponses seront injectées ici -->
+                    </div>
+                    
+                    
+                    <!-- Bouton suivant -->
+                    <div class="mt-8 text-center">  
+                        <div class="text-center  mb-2">
+                    <a href="http://google.com" id="urllink">
+                        <b class="bluetext"  style="font-weight: normal;" >Découvre l’indice ici ></b>
+                    </a>
+                    
+                        </div>
+                    <button
+                        id="next-question-btn"
+                        class="cta-button disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled
+                    >
+                        Question suivante
+                    </button>
+                    </div>
+                </div>
             </div>
-              
-            
-            <!-- Bouton suivant -->
-            <div class="mt-8 text-center">  
-                <div class="text-center  mb-2">
-               <a href="http://google.com" id="urllink">
-                <b class="bluetext"  style="font-weight: normal;" >Découvre l’indice ici ></b>
-               </a>
-            
-                 </div>
-              <button
-                id="next-question-btn"
-                class="cta-button disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled
-              >
-                Question suivante
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -148,8 +174,6 @@
         </button>
       </div>
     </div>
-
-    <!-- Container pour les messages de feedback -->
     <div id="feedback-container" class="fixed top-4 right-4 z-50"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>

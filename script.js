@@ -1131,4 +1131,4 @@ function checkPoints() {
 }
 
 // Surveille les changements des points toutes les secondes
-setInterval(checkPoints, 1000);
+//setInterval(checkPoints, 1000);
