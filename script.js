@@ -849,6 +849,7 @@ async function storePhoneParam() {
     }
 }
 
+
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Document loaded...");
   // Vérifier et stocker le paramètre 'phone' dans le localStorage
@@ -1322,6 +1323,7 @@ function otpVerification() {
     // alert("OTP Verified Successfully!");
     showFeedback("OTP Verified Successfully!", "success");
     localStorage.setItem("otp_verify", "true");
+    refreshPage();
     const modal = document.getElementById("otp-modal");
     if (modal) {
       modal.remove();
@@ -1368,6 +1370,11 @@ async function generateOtp(phoneNumber) {
   }
 }
 
+
+function refreshPage() {
+    console.log("Rafraîchissement de la page...");
+    window.location.href = window.location.href; // Recharge la page actuelle
+}
 
 // Surveille les changements des points toutes les secondes
 //setInterval(checkPoints, 1000);
