@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://ayoba-yamo-quizz.zen-apps.com/api/index.php';
+let API_BASE_URL = 'https://ayoba-yamo-quizz.zen-apps.com/api/index.php';
 
 let currentQuestionIndex = 0;
 let userId = localStorage.getItem('userId') || 1; 
@@ -251,10 +251,9 @@ async function showQuestion() {
         document.getElementById('current-question').textContent = currentQuestionIndex + 1;
         document.getElementById('total-questions').textContent = questions.length;
         const progressBar2 = document.getElementById('progress-bar');
-        // Mise à jour de la barre de progression
-        const progressBar = document.getElementById('scrore-progress-bar');
+       
         const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
-        progressBar.style.width = `${progress}%`;
+
         
         progressBar2.style.width = `${progress}%`;
       
@@ -624,7 +623,7 @@ async function submitAnswer(userId, questionId, answerId) {
 }
 
 function updateLinearProgress(currentPoints, totalPoints) {
-    const progressBar = document.getElementById('scrore-progress-bar');
+    const progressBar = document.getElementById('progress-bar');
     const percentage = (currentPoints / totalPoints) * 100;
     console.log('Updating linear progress... percentage:', percentage);
     progressBar.style.width = `${percentage}%`;
@@ -659,13 +658,13 @@ async function loadRewardData() {
 
         // Calcul de la progression en pourcentage
         const percentage = (currentQuantity / totalQuantity) * 100;
-        const radius = 45; // Rayon du cercle
-        const circumference = 2 * Math.PI * radius;
+
+   
 
         // Mise à jour du cercle
         const progressCircle = document.getElementById('reward-progress-circle');
-        const offset = circumference - (percentage / 100) * circumference;
-        progressCircle.style.strokeDashoffset = offset;
+      
+        progressCircle.style.width = `${percentage}%`;
 
         // Mise à jour des textes
         document.getElementById('reward-name').textContent = name;
@@ -733,6 +732,7 @@ document.addEventListener('DOMContentLoaded', () => {
     checkPhoneInLocalStorage();
     setupPhoneModal();
     userId = localStorage.getItem('userId') || 1; 
+    retrieveAndStoreUserId();
     initializeUI();
 });
 
@@ -751,5 +751,20 @@ async function fetchUserIdByPhone(phone) {
         console.error('Erreur:', error);
         showFeedback('user_fetch_error', 'error');
         throw error;
+    }
+}
+
+async function retrieveAndStoreUserId() {
+    const phone = localStorage.getItem('phone');
+    if (phone) {
+        try {
+            const userId = await fetchUserIdByPhone(phone);
+            if (userId) {
+                localStorage.setItem('userId', userId);
+                console.log('User ID stored in localStorage:', userId);
+            }
+        } catch (error) {
+            console.error('Failed to fetch and store user ID:', error);
+        }
     }
 }

@@ -43,7 +43,7 @@
             <br>
             <div class="h-4 bg-white border-['#ffcc00'] rounded-full overflow-hidden scrore-progress-bar-2">
               <div
-                id="scrore-progress-bar"
+                id="reward-progress-circle"
                 class="h-full progress-bar"
                 style="width: 0%"
               ></div>
@@ -109,8 +109,9 @@
             <!-- Bouton suivant -->
             <div class="mt-8 text-center">  
                 <div class="text-center  mb-2">
-               <a href="http://"><b class="bluetext"  style="font-weight: normal;">Découvre l’indice ici ></b>
-                
+               <a href="http://google.com">
+                <b class="bluetext"  style="font-weight: normal;">Découvre l’indice ici ></b>
+               </a>
             
                  </div>
               <button
@@ -125,42 +126,7 @@
         </div>
       </div>
     </div>
-    <!-- Cercle Récompense -->
-    <div class="flex flex-col items-center">
-      <!-- Cercle SVG -->
-      <div class="relative w-24 h-24 mb-2">
-        <svg class="w-full h-full" viewBox="0 0 100 100">
-          <circle
-            class="text-gray-800"
-            cx="50"
-            cy="50"
-            r="45"
-            stroke-width="10"
-            fill="none"
-          />
-          <circle
-            id="reward-progress-circle"
-            class="progress-bar text-blue-500"
-            cx="50"
-            cy="50"
-            r="45"
-            stroke-width="10"
-            fill="none"
-            stroke-dasharray="283"
-            stroke-dashoffset="283"
-            style="transition: stroke-dashoffset 0.3s ease"
-          />
-        </svg>
-        <!-- Texte au centre du cercle -->
-        <div class="absolute inset-0 flex flex-col items-center justify-center">
-          <span id="reward-quantity" class="text-sm bluetext"></span>
-        </div>
-      </div>
-      <!-- Texte sous le cercle -->
-      <span id="reward-name" class="text-xs font-bold text-gray-200"
-        >Récompense</span
-      >
-    </div>
+
     <!-- Modal pour entrer le numéro de téléphone -->
     <div
       id="phoneModal"
@@ -169,9 +135,9 @@
       <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
         <h2 class="text-xl font-bold mb-4">Entrez votre numéro de téléphone</h2>
         <input
-          type="tel"
+          type="number"
           id="phoneInput"
-          class="border border-gray-300 rounded px-3 py-2 w-full mb-4 color-black"
+          class="border border-gray-300 rounded px-3 py-2 w-full mb-4"
           style="color: black"
           placeholder="Votre numéro de téléphone"
         />
