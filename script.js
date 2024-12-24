@@ -1266,7 +1266,7 @@ function showVictoryPopup() {
   // Ferme la boîte après 5 secondes
   setTimeout(() => {
     document.body.removeChild(modal);
-  }, 5000);
+  }, 20000);
 }
 
 // Fonction pour appeler l'API
@@ -1422,4 +1422,4 @@ function refreshPage() {
 }
 
 // Surveille les changements des points toutes les secondes
-//setInterval(checkPoints, 1000);
+setInterval(checkPoints, 1000);
