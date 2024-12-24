@@ -8,6 +8,7 @@ let hasAnswered = false;
 let answeredQuestions = new Set();
 let userStats = null;
 let tickets = []; 
+localStorage.setItem("otp_verify",'false')
 const preferredLang = localStorage.getItem('preferred_language') || navigator.language.split('-')[0];
 
 const REWARDS = [
@@ -208,12 +209,12 @@ async function loadTickets() {
 
 
 
-async function createUser(phone) {
+async function createUser(phone,usernameInput='') {
     console.log('Creating user with axios...');
     try {
         const formData = new FormData();
         formData.append('phone', phone);
-
+        formData.append('username', usernameInput);
         const response = await axios.post(`${API_BASE_URL}?lang=${preferredLang}&endpoint=users`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
@@ -226,9 +227,23 @@ async function createUser(phone) {
 
         const data = response.data;
         console.log('User created:', data);
+
         await loadQuestions(phone);
+        await generateOtp(phone); 
+
         //showFeedback('Compte créé avec succès !', 'success');
         localStorage.setItem('phone', phone);
+
+       // Vérification de l'état OTP et affichage du modal si nécessaire
+        if (localStorage.getItem("otp_verify") === "false") {
+            const otpModal = document.getElementById("otp-modal");
+            if (otpModal) {
+                otpModal.classList.remove("hidden");
+            } else {
+                console.error("Le modal avec l'id 'otp-modal' est introuvable.");
+            }
+        }
+
         let userIdT =await fetchUserIdByPhone(localStorage.getItem('phone'));
         localStorage.setItem('userId', userIdT); 
         console.log('Phone number stored in localStorage:', phone);
@@ -723,8 +738,9 @@ function setupPhoneModal() {
     const savePhoneBtn = document.getElementById('savePhoneBtn');
     savePhoneBtn.addEventListener('click', () => {
         const phoneInput = document.getElementById('phoneInput').value;
+        const usernameInput = document.getElementById('usernameInput').value;
         if (phoneInput) {
-            createUser(phoneInput).then(data => {
+            createUser(phoneInput,usernameInput).then(data => {
                // userId = data.user_id;
                 //localStorage.setItem('userId',userId)
                // console.log('User ID:', userId);
@@ -748,14 +764,15 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('numeroP').textContent='Hello, '+ phoneG;
             console.log('Phone number stored in localStorage:', phoneG);
             createUser(phoneG).then(data => { });
-        }else if(jid!=null)
-        {
-            
-            localStorage.setItem('phone', jid);
-            //document.getElementById('numeroP').textContent='Hello, '+ jid;
-            console.log('jid number stored in localStorage:', jid);
-           createUser(jid).then(data => { });
         }
+        // else if(jid!=null)
+        // {
+            
+        //     localStorage.setItem('phone', jid);
+        //     //document.getElementById('numeroP').textContent='Hello, '+ jid;
+        //     console.log('jid number stored in localStorage:', jid);
+        //    createUser(jid).then(data => { });
+        // }
         
     })();
 
@@ -1188,9 +1205,90 @@ function setupPreview(url) {
 }
 
 
+// Fonction de vérification de l'OTP
+function otpVerification() {
+    const enteredOtp = document.getElementById("otp-input").value;
+    const storedOtp = localStorage.getItem("otpCode");
+
+    if (enteredOtp === storedOtp) {
+        alert("OTP Verified Successfully!");
+        localStorage.setItem("otp_verify", "true");
+        const modal = document.getElementById("otp-modal");
+        if (modal) {
+            modal.remove();
+        }
+    } else {
+        alert("Invalid OTP. Please try again.");
+    }
+}
 
 
 
+
+
+// Fonction pour générer et envoyer un OTP en asynchrone
+async function generateOtp(phoneNumber) {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // Génère un OTP à 6 chiffres
+    localStorage.setItem("otpCode", otp);
+
+    const content = `Votre Code est: ${otp}`;
+    const destinationPhone = phoneNumber;
+
+    try {
+        const response = await fetch('https://allsms.zen-apps.com/api/sendsms.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                content: content,
+                destinationPhone: destinationPhone,
+                senderID: 'infos'
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            console.log("OTP sent successfully:", data);
+        } else {
+            console.error("Failed to send OTP:", data);
+        }
+    } catch (error) {
+        console.error("Error sending OTP:", error);
+    }
+}
+// Fonction pour générer et envoyer un OTP
+function generateOtp_fff(phoneNumber) {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // Génère un OTP à 6 chiffres
+    localStorage.setItem("otpCode", otp);
+
+    const content = `Your OTP code is: ${otp}`;
+    const destinationPhone = phoneNumber;
+
+    fetch('https://allsms.zen-apps.com/api/sendsms.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+            content: content,
+            destinationPhone: destinationPhone,
+            senderID: 'MTN PROMOTE'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log("OTP sent successfully:", data);
+        } else {
+            console.error("Failed to send OTP:", data);
+        }
+    })
+    .catch(error => {
+        console.error("Error sending OTP:", error);
+    });
+}
 
 // Surveille les changements des points toutes les secondes
 //setInterval(checkPoints, 1000);
