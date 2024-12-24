@@ -85,7 +85,7 @@ async function initializeUIHandler() {
         
         await loadRewardData();
         // Charger les questions
-        await loadQuestions();
+       // await loadQuestions();
         await loadAndDisplayStats();
         
         // Cacher le loader et afficher le contenu
@@ -134,10 +134,13 @@ async function loadAndDisplayStats() {
     }
 }
 
-async function loadQuestions() {
+async function loadQuestions(phone) {
     console.log('Loading questions...');
+
+    let userIdT =await fetchUserIdByPhone(localStorage.getItem('phone'));
     try {
-        const response = await fetch(`${API_BASE_URL}?lang=${preferredLang}&endpoint=questions`);
+        const response = await fetch(`${API_BASE_URL}?userid=${userIdT}&lang=${preferredLang}&endpoint=questions`);
+        
         if (!response.ok) throw new Error('Failed to load questions');
         const data = await response.json();
         console.log('Questions loaded:', data);
@@ -222,6 +225,7 @@ async function createUser(phone) {
 
         const data = response.data;
         console.log('User created:', data);
+        await loadQuestions(phone);
         showFeedback('Compte créé avec succès !', 'success');
         localStorage.setItem('phone', phone);
         let userIdT =await fetchUserIdByPhone(localStorage.getItem('phone'));
