@@ -73,16 +73,16 @@
         <!-- Section Quiz -->
         <div class="lg:col-span-2">
           <div class="glass-effect rounded-2xl p-8">
-            <div class="flex items-center justify-between mb-8">
-              <div class="bluetext">
+            <div class="flex items-center justify-between mb-8 " style="display: none;">
+              <!-- <div class="bluetext">
                 Question
                 <span id="current-question" class="text-white font-bold" style="color: var(--text-color)"
                   >1</span
                 >
                 <span class="text-gray-600">/</span>
                 <span id="total-questions" class="bluetext">10</span>
-              </div>
-              <div class="w-48 h-1.5 bg-white rounded-full overflow-hidden progress-bar-2">
+              </div> -->
+              <div  class="w-48 h-1.5 bg-white rounded-full overflow-hidden progress-bar-2" style="display: none;">
                 <div id="progress-bar" class="h-full progress-bar"   style="width: 0%"></div>
               </div>
             </div>
@@ -92,7 +92,7 @@
             <!-- Question Container -->
             <div
               id="question-container"
-              class="mb-8 text-2xl font-bold "
+              class="mb-8 text-2xl font-bold text-center"
             >
               <!-- La question sera injectée ici -->
             </div>
@@ -100,7 +100,7 @@
             <!-- Réponses -->
             <div
               id="answers-container"
-              class="grid grid-cols-1 md:grid-cols-2 gap-4"
+              class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center"
             >
               <!-- Les réponses seront injectées ici -->
             </div>

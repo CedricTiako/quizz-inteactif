@@ -253,8 +253,8 @@ async function showQuestion() {
         }
         
         // Mise à jour de l'indicateur de progression
-      //  document.getElementById('current-question').textContent = currentQuestionIndex + 1;
-      //  document.getElementById('total-questions').textContent = questions.length;
+        document.getElementById('current-question').textContent = currentQuestionIndex + 1;
+        document.getElementById('total-questions').textContent = questions.length;
         const progressBar2 = document.getElementById('progress-bar');
        
         const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
@@ -1090,77 +1090,29 @@ function showVictoryPopup() {
 
 // Fonction pour appeler l'API
 function callApi() {
-    fetch(`https://ayoba-yamo-quizz.zen-apps.com/api/index.php?lang=fr&endpoint=set_tickets&user_id${userId}`, {
-        method: 'GET'
+    fetch(`https://ayoba-yamo-quizz.zen-apps.com/api/index.php?lang=fr&endpoint=set_tickets&user_id=${userId}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            status: 'success',
+            message: 'Ticket gagné',
+        }),
     })
     .then(response => response.json())
     .then(data => {
         console.log('Réponse de l\'API :', data);
-        showRestartPopup(); // Affiche le pop-up de redémarrage après l'API
     })
     .catch(error => {
         console.error('Erreur lors de l\'appel à l\'API :', error);
     });
 }
 
-// Fonction pour afficher un pop-up de redémarrage
-function showRestartPopup() {
-    const modal = document.createElement('div');
-    modal.style.position = 'fixed';
-    modal.style.top = '0';
-    modal.style.left = '0';
-    modal.style.width = '100%';
-    modal.style.height = '100%';
-    modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-    modal.style.display = 'flex';
-    modal.style.justifyContent = 'center';
-    modal.style.alignItems = 'center';
-    modal.style.zIndex = '9999';
-
-    const content = document.createElement('div');
-    content.style.backgroundColor = '#fff';
-    content.style.padding = '20px';
-    content.style.borderRadius = '8px';
-    content.style.textAlign = 'center';
-    content.innerHTML = '<h1>Voulez-vous Continué ?</h1>';
-
-    const yesButton = document.createElement('button');
-    yesButton.textContent = 'Oui';
-    yesButton.style.margin = '10px';
-    yesButton.style.padding = '10px 20px';
-    yesButton.style.backgroundColor = '#28a745';
-    yesButton.style.color = '#fff';
-    yesButton.style.border = 'none';
-    yesButton.style.borderRadius = '5px';
-    yesButton.style.cursor = 'pointer';
-    yesButton.onclick = () => {
-        document.body.removeChild(modal);
-        resetGame(); // Réinitialise le jeu (ajoutez votre logique ici)
-    };
-
-    const noButton = document.createElement('button');
-    noButton.textContent = 'Non';
-    noButton.style.margin = '10px';
-    noButton.style.padding = '10px 20px';
-    noButton.style.backgroundColor = '#dc3545';
-    noButton.style.color = '#fff';
-    noButton.style.border = 'none';
-    noButton.style.borderRadius = '5px';
-    noButton.style.cursor = 'pointer';
-    noButton.onclick = () => {
-        document.body.removeChild(modal);
-    };
-
-    content.appendChild(yesButton);
-    content.appendChild(noButton);
-    modal.appendChild(content);
-    document.body.appendChild(modal);
-}
-
 // Fonction pour vérifier les points
 function checkPoints() {
-    const totalPoints = parseInt(document.getElementById('total-points')?.innerText, 10);
-    const pointsRequired = parseInt(document.getElementById('points_required')?.innerText, 10);
+    const totalPoints = parseInt(document.getElementById('total-points').innerText, 10);
+    const pointsRequired = parseInt(document.getElementById('points_required').innerText, 10);
 
     if (totalPoints >= pointsRequired) {
         showVictoryPopup();
@@ -1170,10 +1122,3 @@ function checkPoints() {
 
 // Surveille les changements des points toutes les secondes
 setInterval(checkPoints, 1000);
-
-// Fonction pour réinitialiser le jeu (ajoutez votre logique spécifique ici)
-function resetGame() {
-    window.location.reload()
-    document.getElementById('total-points').innerText = '0';
-    document.getElementById('points_required').innerText = '10'; // Exemple de valeur par défaut
-}
