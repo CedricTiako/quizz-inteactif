@@ -17,7 +17,7 @@ const REWARDS = [
 ];
 
 const MAX_POINTS = REWARDS[REWARDS.length - 1].points;
-
+let points_required=0;
 
 let translations = {};
 
@@ -151,6 +151,7 @@ async function loadQuestions(phone) {
             question_text: q.question_text,
             category_id: q.category_id,
             level_id: q.level_id,
+            url_indice: q.url_indice,
             created_at: q.created_at
         }));
         return questions;
@@ -265,7 +266,15 @@ async function showQuestion() {
         // Affichage de la question
         const questionContainer = document.getElementById('question-container');
         questionContainer.textContent = currentQuestion.question_text;
-        
+        //url_indice
+
+        // Sélectionnez l'élément avec une classe ou un autre identifiant unique
+        const linkElement = document.getElementById('urllink');
+
+        // Définissez l'attribut href dynamiquement
+        if (linkElement) {
+        linkElement.href = currentQuestion.url_indice;
+        }
         // Affichage des réponses
         const answersContainer = document.getElementById('answers-container');
         answersContainer.innerHTML = '';
@@ -644,8 +653,8 @@ function processAnswerFeedback(isCorrect, pointsAwarded) {
         correctAnswers.textContent = parseInt(correctAnswers.textContent) + 1;
     } else {
         // Feedback pour une mauvaise réponse
-        showFeedback(t('wrong_answer_feedback').replace('{points}', '1'), 'error');
-        updateScore(-1); // Réduire 1 point pour une mauvaise réponse
+        showFeedback(t('wrong_answer_feedback').replace('{points}', pointsAwarded), 'error');
+        updateScore(-pointsAwarded); // Réduire 1 point pour une mauvaise réponse
     }
 }
 async function loadRewardData() {
@@ -657,10 +666,10 @@ async function loadRewardData() {
         const totalQuantity = 100; // Total fixe pour l'exemple
         const currentQuantity = parseInt(reward.quantity, 10); // Quantité actuelle
         const name = reward.name; // Nom de la récompense
-
+        points_required=parseInt(reward.points_required, 10); 
         // Calcul de la progression en pourcentage
         const percentage = (currentQuantity / totalQuantity) * 100;
-
+        document.getElementById('points_required').textContent = `/${points_required}`;
    
 
         // Mise à jour du cercle
@@ -791,4 +800,222 @@ async function retrieveAndStoreUserId() {
             console.error('Failed to fetch and store user ID:', error);
         }
     }
+}
+
+function createMediaModal_old(mediaUrl) {
+    // Vérifier si un modal existe déjà et le supprimer
+    const existingModal = document.getElementById('mediaModal');
+    if (existingModal) {
+      existingModal.remove();
+    }
+  
+    // Identifier le type de média automatiquement
+    let mediaType;
+    if (mediaUrl.match(/\.(jpeg|jpg|png|gif|bmp|webp)$/i)) {
+      mediaType = 'image';
+    } else if (mediaUrl.match(/\.(mp4|webm|ogg|avi|mov|mkv)$/i)) {
+      mediaType = 'video';
+    } else {
+      mediaType = 'url';
+    }
+  
+    // Créer les éléments principaux du modal
+    const modal = document.createElement('div');
+    modal.id = 'mediaModal';
+    modal.className = 'fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50';
+  
+    const modalContent = document.createElement('div');
+    modalContent.className = 'bg-white rounded-lg shadow-lg overflow-hidden max-w-3xl w-full relative';
+  
+    const closeButton = document.createElement('button');
+    closeButton.className = 'absolute top-4 right-4 text-gray-700 bg-gray-200 rounded-full p-2 hover:bg-gray-300';
+    closeButton.innerHTML = '&times;';
+    closeButton.addEventListener('click', () => {
+      modal.remove();
+    });
+  
+    // Ajouter le contenu en fonction du type de média
+    if (mediaType === 'image') {
+      const img = document.createElement('img');
+      img.src = mediaUrl;
+      img.alt = 'Image';
+      img.className = 'w-full h-auto';
+      modalContent.appendChild(img);
+    } else if (mediaType === 'video') {
+      const video = document.createElement('video');
+      video.src = mediaUrl;
+      video.controls = true;
+      video.className = 'w-full h-auto';
+      modalContent.appendChild(video);
+    } else if (mediaType === 'url') {
+      const iframe = document.createElement('iframe');
+      iframe.src = mediaUrl;
+      iframe.className = 'w-full h-[80vh]';
+      iframe.style.border = 'none';
+      modalContent.appendChild(iframe);
+    } else {
+      console.error('Type de média non supporté.');
+      return;
+    }
+  
+    // Ajouter le bouton de fermeture et le contenu au modal
+    modal.appendChild(closeButton);
+    modal.appendChild(modalContent);
+  
+    // Ajouter le modal au DOM
+    document.body.appendChild(modal);
+  }
+  
+  function createMediaModal(mediaUrl) {
+    // Vérifier si un modal existe déjà et le supprimer
+    const existingModal = document.getElementById('mediaModal');
+    if (existingModal) {
+      existingModal.remove();
+    }
+
+    // Identifier le type de média automatiquement
+    let mediaType;
+    if (mediaUrl.match(/\.(jpeg|jpg|png|gif|bmp|webp)$/i)) {
+      mediaType = 'image';
+    } else if (mediaUrl.match(/\.(mp4|webm|ogg|avi|mov|mkv)$/i)) {
+      mediaType = 'video';
+    } else if (mediaUrl.includes('youtube.com/watch')) {
+      mediaType = 'youtube';
+    } else {
+      mediaType = 'url';
+    }
+
+    // Créer les éléments principaux du modal
+    const modal = document.createElement('div');
+    modal.id = 'mediaModal';
+    modal.className = 'fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50';
+
+    const modalContent = document.createElement('div');
+    modalContent.className = 'bg-white rounded-lg shadow-lg overflow-hidden max-w-3xl w-full relative';
+
+    const closeButton = document.createElement('button');
+    closeButton.className = 'absolute top-4 right-4 text-gray-700 bg-gray-200 rounded-full p-2 hover:bg-gray-300';
+    closeButton.innerHTML = '&times;';
+    closeButton.addEventListener('click', () => {
+      modal.remove();
+    });
+
+    // Ajouter le contenu en fonction du type de média
+    if (mediaType === 'image') {
+      const img = document.createElement('img');
+      img.src = mediaUrl;
+      img.alt = 'Image';
+      img.className = 'w-full h-auto';
+      modalContent.appendChild(img);
+    } else if (mediaType === 'video') {
+      const video = document.createElement('video');
+      video.src = mediaUrl;
+      video.controls = true;
+      video.className = 'w-full h-auto';
+      modalContent.appendChild(video);
+    } else if (mediaType === 'youtube') {
+      const videoId = new URL(mediaUrl).searchParams.get('v');
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://www.youtube.com/embed/${videoId}`;
+      iframe.className = 'w-full h-[80vh]';
+      iframe.style.border = 'none';
+      modalContent.appendChild(iframe);
+    } else if (mediaType === 'url') {
+      const iframe = document.createElement('iframe');
+      iframe.src = mediaUrl;
+      iframe.className = 'w-full h-[80vh]';
+      iframe.style.border = 'none';
+      modalContent.appendChild(iframe);
+    } else {
+      console.error('Type de média non supporté.');
+      return;
+    }
+
+    // Ajouter le bouton de fermeture et le contenu au modal
+    modal.appendChild(closeButton);
+    modal.appendChild(modalContent);
+
+    // Ajouter le modal au DOM
+    document.body.appendChild(modal);
+}
+
+
+  // Ajout d'un gestionnaire pour les balises <a> avec id "urllink"
+  document.getElementById('urllink').addEventListener('click', function(event) {
+    event.preventDefault(); // Empêche la navigation par défaut
+    const mediaUrl = this.href; // Récupère le lien contenu dans l'attribut href
+    createMediaModal(mediaUrl); // Appelle la fonction avec le lien récupéré
+  });
+
+  function createMediaModal(mediaUrl) {
+    // Vérifier si un modal existe déjà et le supprimer
+    const existingModal = document.getElementById('mediaModal');
+    if (existingModal) {
+      existingModal.remove();
+    }
+
+    // Identifier le type de média automatiquement
+    let mediaType;
+    if (mediaUrl.match(/\.(jpeg|jpg|png|gif|bmp|webp)$/i)) {
+      mediaType = 'image';
+    } else if (mediaUrl.match(/\.(mp4|webm|ogg|avi|mov|mkv)$/i)) {
+      mediaType = 'video';
+    } else if (mediaUrl.includes('youtube.com/watch')) {
+      mediaType = 'youtube';
+    } else {
+      mediaType = 'url';
+    }
+
+    // Créer les éléments principaux du modal
+    const modal = document.createElement('div');
+    modal.id = 'mediaModal';
+    modal.className = 'fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50';
+
+    const modalContent = document.createElement('div');
+    modalContent.className = 'bg-white rounded-lg shadow-lg overflow-hidden max-w-3xl w-full relative';
+
+    const closeButton = document.createElement('button');
+    closeButton.className = 'absolute top-4 right-4 text-gray-700 bg-gray-200 rounded-full p-2 hover:bg-gray-300';
+    closeButton.innerHTML = '&times;';
+    closeButton.addEventListener('click', () => {
+      modal.remove();
+    });
+
+    // Ajouter le contenu en fonction du type de média
+    if (mediaType === 'image') {
+      const img = document.createElement('img');
+      img.src = mediaUrl;
+      img.alt = 'Image';
+      img.className = 'w-full h-auto';
+      modalContent.appendChild(img);
+    } else if (mediaType === 'video') {
+      const video = document.createElement('video');
+      video.src = mediaUrl;
+      video.controls = true;
+      video.className = 'w-full h-auto';
+      modalContent.appendChild(video);
+    } else if (mediaType === 'youtube') {
+      const videoId = new URL(mediaUrl).searchParams.get('v');
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://www.youtube.com/embed/${videoId}`;
+      iframe.className = 'w-full h-[80vh]';
+      iframe.style.border = 'none';
+      modalContent.appendChild(iframe);
+    } else if (mediaType === 'url') {
+      const iframe = document.createElement('iframe');
+      iframe.src = mediaUrl;
+      iframe.className = 'w-full h-[80vh]';
+      iframe.style.border = 'none';
+      modalContent.appendChild(iframe);
+    } else {
+      console.error('Type de média non supporté.');
+      return;
+    }
+
+    // Ajouter le bouton de fermeture et le contenu au modal
+    modal.appendChild(closeButton);
+    modal.appendChild(modalContent);
+
+    // Ajouter le modal au DOM
+    document.body.appendChild(modal);
 }
