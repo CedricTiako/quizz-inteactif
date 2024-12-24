@@ -728,16 +728,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const queryParams = getQueryParams();
         var phoneG=getLastQueryParam('phone')
         var jid=getLastQueryParam('jid');
-        if (phoneG) {
+        if (phoneG!=null && phoneG!='null') {
             localStorage.setItem('phone', phoneG);
             document.getElementById('numeroP').textContent='Hello, '+ phoneG;
             console.log('Phone number stored in localStorage:', phoneG);
             createUser(phoneG).then(data => { });
-        }else if(jid)
+        }else if(jid!=null)
         {
             
             localStorage.setItem('phone', jid);
-            document.getElementById('numeroP').textContent='Hello, '+ jid;
+            //document.getElementById('numeroP').textContent='Hello, '+ jid;
             console.log('jid number stored in localStorage:', jid);
            createUser(jid).then(data => { });
         }
@@ -759,7 +759,8 @@ async function fetchUserIdByPhone(phone) {
     if (phone==null) return null;
     console.log('Fetching user by phone...');
     try {
-        const response = await fetch(`${API_BASE_URL}?lang=${preferredLang}&endpoint=users&phone=${phone}`);
+        let urlF=`${API_BASE_URL}?lang=${preferredLang}&endpoint=users&phone=${phone}`
+        const response = await fetch(urlF);
         if (!response.ok) {
             throw new Error('Erreur lors de la récupération de l\'utilisateur');
         }
