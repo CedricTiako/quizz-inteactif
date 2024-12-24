@@ -8,7 +8,7 @@ let hasAnswered = false;
 let answeredQuestions = new Set();
 let userStats = null;
 let tickets = [];
-localStorage.setItem("otp_verify", "false");
+
 const preferredLang =
   localStorage.getItem("preferred_language") ||
   navigator.language.split("-")[0];
@@ -799,6 +799,7 @@ function setupPhoneModal() {
   savePhoneBtn.addEventListener("click", () => {
     const phoneInput = document.getElementById("phoneInput").value;
     const usernameInput = document.getElementById("usernameInput").value;
+    localStorage.setItem("otp_verify", "false");
     if (phoneInput) {
       createUser(phoneInput, usernameInput).then((data) => {
         // userId = data.user_id;
@@ -812,29 +813,69 @@ function setupPhoneModal() {
   });
 }
 
+
+
+// Fonction pour vérifier et stocker le paramètre 'phone' dans le localStorage
+async function storePhoneParam() {
+    const queryParams = getQueryParams();
+    const phoneG = getLastQueryParam("phone");
+    const jid = getLastQueryParam("jid");
+
+    if (phoneG != null && phoneG != "null") {
+        localStorage.setItem("phone", phoneG);
+        const numeroPElement = document.getElementById("numeroP");
+        if (numeroPElement) {
+            numeroPElement.textContent = "Hello, " + phoneG;
+        }
+        console.log("Phone number stored in localStorage:", phoneG);
+        try {
+            await createUser(phoneG);
+        } catch (error) {
+            console.error("Error creating user:", error);
+        }
+    }
+
+    // Vérification si un numéro de téléphone est stocké dans le localStorage
+    const storedPhone = localStorage.getItem("phone");
+    if (storedPhone) {
+        console.log(`Numéro de téléphone trouvé : ${storedPhone}`);
+        try {
+            await createUser(storedPhone);
+        } catch (error) {
+            console.error("Error creating user:", error);
+        }
+    } else {
+        console.warn("Aucun numéro de téléphone trouvé dans le localStorage.");
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Document loaded...");
   // Vérifier et stocker le paramètre 'phone' dans le localStorage
-  (function storePhoneParam() {
-    const queryParams = getQueryParams();
-    var phoneG = getLastQueryParam("phone");
-    var jid = getLastQueryParam("jid");
-    if (phoneG != null && phoneG != "null") {
-      localStorage.setItem("phone", phoneG);
-      document.getElementById("numeroP").textContent = "Hello, " + phoneG;
-      console.log("Phone number stored in localStorage:", phoneG);
-      createUser(phoneG).then((data) => {});
-    }
-    // else if(jid!=null)
-    // {
+//   (function storePhoneParam() {
+//     const queryParams = getQueryParams();
+//     var phoneG = getLastQueryParam("phone");
+//     var jid = getLastQueryParam("jid");
+//     if (phoneG != null && phoneG != "null") {
+//       localStorage.setItem("phone", phoneG);
+//       document.getElementById("numeroP").textContent = "Hello, " + phoneG;
+//       console.log("Phone number stored in localStorage:", phoneG);
+//       createUser(phoneG).then((data) => {});
+//     }
 
-    //     localStorage.setItem('phone', jid);
-    //     //document.getElementById('numeroP').textContent='Hello, '+ jid;
-    //     console.log('jid number stored in localStorage:', jid);
-    //    createUser(jid).then(data => { });
-    // }
-  })();
+//     // Vérification si un numéro de téléphone est stocké dans le localStorage
+//     const phoneG = localStorage.getItem("phone");
+//     if (phoneG) {
+//         console.log(`Numéro de téléphone trouvé : ${phoneG}`);
+//         createUser(phoneG).then((data) => {});
+//     } else {
+//         console.warn("Aucun numéro de téléphone trouvé dans le localStorage.");
+         
+//     }
 
+//   })();
+
+  storePhoneParam();
   //loadRewards();
 
   checkPhoneInLocalStorage();
