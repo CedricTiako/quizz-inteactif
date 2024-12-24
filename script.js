@@ -727,17 +727,18 @@ document.addEventListener('DOMContentLoaded', () => {
     (function storePhoneParam() {
         const queryParams = getQueryParams();
         var phoneG=getLastQueryParam('phone')
+        var jid=getLastQueryParam('jid');
         if (phoneG) {
             localStorage.setItem('phone', phoneG);
             document.getElementById('numeroP').textContent='Hello, '+ phoneG;
             console.log('Phone number stored in localStorage:', phoneG);
             createUser(phoneG).then(data => { });
-        }else
+        }else if(jid)
         {
-            var jid=getLastQueryParam('jid');
+            
             localStorage.setItem('phone', jid);
             document.getElementById('numeroP').textContent='Hello, '+ jid;
-            console.log('Phone number stored in localStorage:', jid);
+            console.log('jid number stored in localStorage:', jid);
            createUser(jid).then(data => { });
         }
         
