@@ -72,9 +72,9 @@ async function initializeUIHandler() {
   const quizLoader = document.getElementById("quiz-loader");
   const quizContent = document.getElementById("quiz-content");
 
-  if (totalPoints) totalPoints.textContent = "0";
-  if (correctAnswers) correctAnswers.textContent = "0";
-  if (progressBar) progressBar.style.width = "0%";
+//   if (totalPoints) totalPoints.textContent = "0";
+//   if (correctAnswers) correctAnswers.textContent = "0";
+//   if (progressBar) progressBar.style.width = "0%";
 
   try {
     // Afficher le loader
@@ -475,7 +475,7 @@ function updateScore(points) {
   const totalPoints2 = document.getElementById("total-points2");
   const currentPoints = parseInt(totalPoints.textContent);
   const newPoints = currentPoints + points; // Empêcher le score d'aller en dessous de 0
-
+  console.log('newPoints',newPoints)
   // Animation du score
   let count = currentPoints;
   const duration = 1000;
@@ -485,6 +485,7 @@ function updateScore(points) {
     count += step;
     if ((step > 0 && count >= newPoints) || (step < 0 && count <= newPoints)) {
       count = newPoints;
+      
       totalPoints.textContent = Math.round(count);
       return;
     }
@@ -1360,7 +1361,7 @@ function otpVerification() {
     // alert("OTP Verified Successfully!");
     showFeedback("OTP Verified Successfully!", "success");
     localStorage.setItem("otp_verify", "true");
-    //refreshPage();
+    refreshPage();
     const modal = document.getElementById("otp-modal");
     if (modal) {
       modal.remove();
@@ -1380,33 +1381,36 @@ async function generateOtp(phoneNumber) {
   const content =`Salut, ${spacedOtp} est votre numéro de validation.`;
   let destinationPhone = phoneNumber.startsWith('237') ? phoneNumber : `237${phoneNumber}`;
 
+  if (localStorage.getItem("otp_verify") === "false")
+  {
+    try {
+        const response = await fetch(
+        "https://allsms.zen-apps.com/api/sendsms.php",
+        {
+            method: "POST",
+            headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+            content: content,
+            destinationPhone: destinationPhone,
+            senderID: "infos",
+            }),
+        }
+        );
+        
+        const data = await response.json();
 
-  try {
-    const response = await fetch(
-      "https://allsms.zen-apps.com/api/sendsms.php",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          content: content,
-          destinationPhone: destinationPhone,
-          senderID: "infos",
-        }),
-      }
-    );
-
-    const data = await response.json();
-
-    if (data.success) {
-      console.log("OTP sent successfully:", data);
-    } else {
-      console.error("Failed to send OTP:", data);
+        if (data.success) {
+        console.log("OTP sent successfully:", data);
+        } else {
+        console.error("Failed to send OTP:", data);
+        }
+    } catch (error) {
+        console.error("Error sending OTP:", error);
     }
-  } catch (error) {
-    console.error("Error sending OTP:", error);
   }
+  
 }
 
 
