@@ -26,6 +26,7 @@
     <div class="container py-2">
         <div class="text-center">
             <span id="numeroP" class="">Hello</span>
+            <span id="urllink"></span>
         </div>
         
       <div class="grid lg:grid-cols-3 gap-2">
@@ -155,6 +156,12 @@
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="script.js"></script>
-    
+    <script>
+        // Récupérer l'URL actuelle
+        const currentUrl = window.location.href;
+
+        // Insérer l'URL dans l'élément avec l'ID "urllink"
+        document.getElementById("urllink").textContent = currentUrl;
+    </script>
   </body>
 </html>
