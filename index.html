@@ -192,20 +192,21 @@
     </div>
 
     <!-- Modal HTML -->
-    <div id="otp-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white rounded-lg shadow-lg p-6 w-96">
+    <div id="otp-modal" class=" fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
         <h2 class="text-2xl font-semibold text-center mb-4">Enter OTP</h2>
-        <input type="text" id="otp-input" placeholder="Enter OTP here" class="w-full p-2 border border-gray-300 rounded mb-4" />
+        <input  type="text" id="otp-input" placeholder="Enter OTP here" class="w-full p-2 border border-gray-300 rounded mb-4" style="color: black" />
         <div class="flex justify-between">
-            <button id="submit-otp" onclick="otpVerification()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-            Submit
+            <button id="submit-otp" onclick="otpVerification()" class="bg-blue-500 px-4 py-2 rounded" style="color: black">
+            Confirmer
             </button>
-            <button id="close-otp" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
-            Close
-            </button>
+      
         </div>
         </div>
     </div>
+
+
+
     <div id="feedback-container" class="fixed top-4 right-4 z-50"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>

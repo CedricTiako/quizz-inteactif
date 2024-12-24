@@ -405,11 +405,11 @@ button:hover {
 }
 
 /* Styles pour le modal de téléphone */
-#phoneModal {
+#phoneModal,#otp-modal {
     background-color: rgba(0, 0, 0, 0.7);
 }
 
-#phoneModal .bg-white {
+#phoneModal .bg-white,#otp-modal .bg-white {
     background-color: var(--card-bg);
     border-radius: 16px;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
@@ -435,7 +435,7 @@ button:hover {
     margin-bottom: 16px;
 }
 
-#phoneModal button {
+#phoneModal button ,#submit-otp {
     background-color: var(--accent-color);
     color: var(--background-color);
     padding: 12px 24px;
@@ -445,12 +445,12 @@ button:hover {
     align-self: center;
 }
 
-#phoneModal button:hover {
+#phoneModal button:hover,#submit-otp:hover {
     background-color: var(--secondary-color);
 }
 
 /* Modal */
-.modal {
+.modal,.modal2 {
     display: none;
     position: fixed;
     top: 0;
@@ -463,9 +463,10 @@ button:hover {
     z-index: 1000;
 }
 
-.modal.active {
+.modal.active ,.modal2.active {
     display: flex;
 }
+
 
 
 :root {

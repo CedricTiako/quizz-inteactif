@@ -247,6 +247,8 @@ async function createUser(phone, usernameInput = "") {
     // Vérification de l'état OTP et affichage du modal si nécessaire
     if (localStorage.getItem("otp_verify") === "false") {
       const otpModal = document.getElementById("otp-modal");
+      console.log('ligne' ,otpModal);
+      
       if (otpModal) {
         otpModal.classList.remove("hidden");
       } else {
@@ -794,7 +796,7 @@ function checkPhoneInLocalStorage() {
 }
 
 // Événement pour enregistrer le numéro de téléphone
-function setupPhoneModal() {
+function setupPhoneModal_old() {
   const savePhoneBtn = document.getElementById("savePhoneBtn");
   savePhoneBtn.addEventListener("click", () => {
     const phoneInput = document.getElementById("phoneInput").value;
@@ -812,6 +814,41 @@ function setupPhoneModal() {
     }
   });
 }
+
+
+// Événement pour enregistrer le numéro de téléphone
+function setupPhoneModal() {
+    const savePhoneBtn = document.getElementById("savePhoneBtn");
+    savePhoneBtn.addEventListener("click", () => {
+      const phoneInput = document.getElementById("phoneInput").value;
+      const usernameInput = document.getElementById("usernameInput").value;
+      const phoneRegex = /^(?:\+237|237)?6[5-9]\d{7}$/; // Regex pour numéro camerounais
+  
+      if (!phoneRegex.test(phoneInput)) {
+        // Affiche un message d'erreur si le numéro est invalide
+        showFeedback("Numéro invalide. Veuillez entrer un numéro camerounais valide.", "error");
+        console.log("Numéro invalide :", phoneInput);
+        return; // Arrête l'exécution si le numéro est invalide
+      }
+  
+      // Continuer si le numéro est valide
+      localStorage.setItem("otp_verify", "false");
+      if (phoneInput) {
+        createUser(phoneInput, usernameInput).then((data) => {
+          // userId = data.user_id;
+          // localStorage.setItem('userId', userId)
+          // console.log('User ID:', userId);
+        });
+        localStorage.setItem("phone", phoneInput);
+        document.getElementById("phoneModal").classList.remove("active");
+        console.log("Phone number saved:", phoneInput);
+  
+        // Message de succès après la sauvegarde
+        showFeedback("Numéro enregistré avec succès.", "success");
+      }
+    });
+  }
+  
 
 
 
@@ -1339,7 +1376,7 @@ async function generateOtp(phoneNumber) {
   const otp = Math.floor(100000 + Math.random() * 900000).toString(); // Génère un OTP à 6 chiffres
   localStorage.setItem("otpCode", otp);
 
-  const content = `Votre Code est: ${otp}`;
+  const content = `Bonjour, ${otp} est votre numéro de validation.`;
   const destinationPhone = phoneNumber;
 
   try {
@@ -1353,7 +1390,7 @@ async function generateOtp(phoneNumber) {
         body: new URLSearchParams({
           content: content,
           destinationPhone: destinationPhone,
-          senderID: "infos",
+          senderID: "Ayoba 237",
         }),
       }
     );
