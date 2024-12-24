@@ -1274,7 +1274,7 @@ function setupPreview(url) {
     return;
   }
 
-  previewContainer.style.zIndex = "1000";
+  //previewContainer.style.zIndex = "1000";
 
   // Fonction pour vérifier si l'URL est une image
   const isImage = (url) => {
