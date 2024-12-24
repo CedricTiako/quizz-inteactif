@@ -1360,7 +1360,7 @@ function otpVerification() {
     // alert("OTP Verified Successfully!");
     showFeedback("OTP Verified Successfully!", "success");
     localStorage.setItem("otp_verify", "true");
-    refreshPage();
+    //refreshPage();
     const modal = document.getElementById("otp-modal");
     if (modal) {
       modal.remove();
