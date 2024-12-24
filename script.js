@@ -67,7 +67,7 @@ async function initializeUIHandler() {
     console.log('Initializing UI handler...');
     const totalPoints = document.getElementById('total-points');
     const correctAnswers = document.getElementById('correct-answers');
-    const progressBar = document.getElementById('scrore-progress-bar');
+    const progressBar = document.getElementById('progress-bar');
     const quizLoader = document.getElementById('quiz-loader');
     const quizContent = document.getElementById('quiz-content');
 
@@ -438,18 +438,16 @@ function updateScore(points) {
         if ((step > 0 && count >= newPoints) || (step < 0 && count <= newPoints)) {
             count = newPoints;
             totalPoints.textContent = Math.round(count);
-            totalPoints2.textContent = Math.round(count);
             return;
         }
         totalPoints.textContent = Math.round(count);
-        totalPoints2.textContent = Math.round(count);
         requestAnimationFrame(updateCounter);
     }
     
     requestAnimationFrame(updateCounter);
     
     // Mise à jour de la barre de progression
-    const progressBar = document.getElementById('scrore-progress-bar');
+    const progressBar = document.getElementById('progress-bar');
     const percentage = (newPoints / MAX_POINTS) * 100;
     progressBar.style.width = percentage + '%';
     
@@ -472,7 +470,7 @@ function updateScore(points) {
 
 function updateRewardsProgress(currentPoints) {
     console.log('Updating rewards progress...  '+currentPoints);
-    const progressBar = document.getElementById('scrore-progress-bar');
+    const progressBar = document.getElementById('progress-bar');
     const progressText = document.getElementById('rewards-progress-text')??null;
     const rewardsContainer = document.getElementById('rewards-container');
     
