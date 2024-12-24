@@ -683,22 +683,16 @@ function getQueryParams() {
     return Object.fromEntries(params.entries());
 }
 
-// Vérifier et stocker le paramètre 'phone' dans le localStorage
-(function storePhoneParam() {
-    const queryParams = getQueryParams();
-    if (queryParams.phone) {
-        localStorage.setItem('phone', queryParams.phone);
-        document.getElementById('numeroP').textContent='Hello, '+ queryParams.phone;
-        console.log('Phone number stored in localStorage:', queryParams.phone);
-    }else
-    {
-        localStorage.setItem('phone', queryParams.jid);
-        document.getElementById('numeroP').textContent='Hello, '+ queryParams.jid;
-        console.log('Phone number stored in localStorage:', queryParams.jid);
-  
-    }
+function getLastQueryParam(param) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const values = urlParams.getAll(param); // Récupère toutes les valeurs du paramètre
+    return values[values.length - 1]; // Retourne la dernière valeur
+}
 
-})();
+
+
+
+
 
 // Fonction pour afficher le modal si le numéro de téléphone n'est pas dans le localStorage
 function checkPhoneInLocalStorage() {
@@ -729,16 +723,35 @@ function setupPhoneModal() {
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Document loaded...');
-  
+    // Vérifier et stocker le paramètre 'phone' dans le localStorage
+    (function storePhoneParam() {
+        const queryParams = getQueryParams();
+        var phoneG=getLastQueryParam('phone')
+        if (phoneG) {
+            localStorage.setItem('phone', phoneG);
+            document.getElementById('numeroP').textContent='Hello, '+ phoneG;
+            console.log('Phone number stored in localStorage:', phoneG);
+            createUser(phoneG).then(data => { });
+        }else
+        {
+            var jid=getLastQueryParam('jid');
+            localStorage.setItem('phone', jid);
+            document.getElementById('numeroP').textContent='Hello, '+ jid;
+            console.log('Phone number stored in localStorage:', jid);
+           createUser(jid).then(data => { });
+        }
+        
+    })();
 
 
     //loadRewards();
   
     checkPhoneInLocalStorage();
     setupPhoneModal();
-    userId = localStorage.getItem('userId') || 1; 
+    
     retrieveAndStoreUserId();
     initializeUI();
+    userId = localStorage.getItem('userId') || 1; 
 });
 
 async function fetchUserIdByPhone(phone) {
