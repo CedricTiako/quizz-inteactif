@@ -752,7 +752,9 @@ async function loadRewardData() {
     const reward = response.data[0]; // Supposons qu'on prend la première récompense
 
     const totalQuantity = 100; // Total fixe pour l'exemple
-    const currentQuantity = parseInt(reward.quantity, 10); // Quantité actuelle
+    let Quantity=parseInt(reward.quantity, 10);
+    Quantity=(Quantity-30)>0?(Quantity-30):Quantity;
+    const currentQuantity = Quantity; // Quantité actuelle
     const name = reward.name; // Nom de la récompense
     points_required = parseInt(reward.points_required, 10);
     // Calcul de la progression en pourcentage
