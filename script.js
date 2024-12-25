@@ -945,6 +945,7 @@ async function fetchUserIdByPhone(phone) {
     }
     const data = await response.json();
     console.log("User fetched:", data);
+    localStorage.setItem('username',data.username)
     return data.user_id;
   } catch (error) {
     console.error("Erreur:", error);
@@ -1197,7 +1198,7 @@ function createMediaModal_2(mediaUrl) {
 }
 
 // Fonction pour afficher un pop-up avec des confettis
-function showVictoryPopup() {
+function _showVictoryPopup() {
   // Crée une boîte modale
   const modal = document.createElement("div");
   modal.style.position = "fixed";
@@ -1273,6 +1274,108 @@ function showVictoryPopup() {
   drawConfetti();
 
   // Ferme la boîte après 5 secondes
+  setTimeout(() => {
+    document.body.removeChild(modal);
+  }, 20000);
+}
+
+
+// Fonction pour afficher un pop-up avec des confettis
+function showVictoryPopup() {
+  // Déclare la variable du0 nom de l'utilisateur
+  let username; // Remplacez par la valeur dynamique
+  username  =localStorage.getItem('username')??"John Doe";
+  // Crée une boîte modale
+  const modal = document.createElement("div");
+  modal.style.position = "fixed";
+  modal.style.top = "0";
+  modal.style.left = "0";
+  modal.style.width = "100%";
+  modal.style.height = "100%";
+  modal.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+  modal.style.display = "flex";
+  modal.style.justifyContent = "center";
+  modal.style.alignItems = "center";
+  modal.style.zIndex = "9999";
+
+  // Contenu de la boîte
+  const content = document.createElement("div");
+  content.style.backgroundColor = "#fff";
+  content.style.padding = "20px";
+  content.style.borderRadius = "8px";
+  content.style.textAlign = "center";
+  content.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
+  content.innerHTML = `
+        <h1>🎉 Félicitations ! 🎉</h1>
+        <p>Vous avez gagné votre ticket !</p>
+    `;
+
+  // Ajoute un canvas pour dessiner l'image avec le texte
+  const canvas = document.createElement("canvas");
+  canvas.width = 300; // Largeur du canevas
+  canvas.height = 400; // Hauteur du canevas
+  canvas.style.marginTop = "20px";
+  canvas.style.borderRadius = "8px";
+  const ctx = canvas.getContext("2d");
+
+  // Charge l'image et dessine le texte dessus
+  const image = new Image();
+  image.src = "win.jpg"; // Chemin de l'image
+  image.onload = () => {
+    // Dessine l'image sur le canevas
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    // Configure le style du texte
+    ctx.font = "bold 20px Arial";
+    ctx.fillStyle = "#0061A2"; // Couleur du texte
+    ctx.textAlign = "center";
+
+    // Ajoute le texte centré sous l'image
+    ctx.fillText(username, canvas.width / 3, canvas.height - 75);
+  };
+
+  // Ajoute le canevas au contenu de la boîte
+  content.appendChild(canvas);
+  modal.appendChild(content);
+  document.body.appendChild(modal);
+
+  // Ajoute des confettis (en utilisant une bibliothèque ou un simple effet CSS/JS)
+  const confettiCanvas = document.createElement("canvas");
+  confettiCanvas.style.position = "fixed";
+  confettiCanvas.style.top = "0";
+  confettiCanvas.style.left = "0";
+  confettiCanvas.width = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+  modal.appendChild(confettiCanvas);
+
+  const confettiContext = confettiCanvas.getContext("2d");
+  const confettiPieces = Array.from({ length: 100 }, () => ({
+    x: Math.random() * confettiCanvas.width,
+    y: Math.random() * confettiCanvas.height,
+    speedX: (Math.random() - 0.5) * 5,
+    speedY: Math.random() * 3 + 2,
+    color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+    size: Math.random() * 5 + 2,
+  }));
+
+  function drawConfetti() {
+    confettiContext.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    confettiPieces.forEach((p) => {
+      p.x += p.speedX;
+      p.y += p.speedY;
+      if (p.y > confettiCanvas.height) p.y = 0;
+
+      confettiContext.fillStyle = p.color;
+      confettiContext.beginPath();
+      confettiContext.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      confettiContext.fill();
+    });
+    requestAnimationFrame(drawConfetti);
+  }
+
+  drawConfetti();
+
+  // Ferme la boîte après 20 secondes
   setTimeout(() => {
     document.body.removeChild(modal);
   }, 20000);
