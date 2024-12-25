@@ -1197,8 +1197,13 @@ function createMediaModal_2(mediaUrl) {
   document.body.appendChild(modal);
 }
 
+
 // Fonction pour afficher un pop-up avec des confettis
-function _showVictoryPopup() {
+function showVictoryPopup() {
+  // Déclare la variable du nom de l'utilisateur et le numéro de téléphone
+  const username = localStorage.getItem("username") ?? "John Doe";
+  const phoneNumber = localStorage.getItem("phone") ?? "679008787"; // Numéro par défaut
+
   // Crée une boîte modale
   const modal = document.createElement("div");
   modal.style.position = "fixed";
@@ -1215,41 +1220,76 @@ function _showVictoryPopup() {
   // Contenu de la boîte
   const content = document.createElement("div");
   content.style.backgroundColor = "#fff";
-  content.style.padding = "20px";
+  content.style.padding = "10px";
   content.style.borderRadius = "8px";
   content.style.textAlign = "center";
   content.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
+  
   content.innerHTML = `
         <h1>🎉 Félicitations ! 🎉</h1>
-        <p>Vous avez gagné votre ticket !</p>
-    `;
+        <p>Votre ticket sera envoyé par SMS.</p>`;
 
-  // Ajoute une image en bas du message
-  const image = document.createElement("img");
-  image.src = "win.jpg";
-  image.alt = "Victoire";
-  image.style.marginTop = "20px";
-  image.style.width = "100%"; // Ajuste la largeur de l'image
-  image.style.maxWidth = "300px"; // Limite la taille maximale
-  image.style.borderRadius = "8px";
+  // Ajoute un canvas pour dessiner l'image avec le texte et le QR code
+  const canvas = document.createElement("canvas");
+  canvas.width = 300; // Largeur du canevas
+  canvas.height = 300; // Hauteur du canevas
+  canvas.style.marginTop = "20px";
+  canvas.style.borderRadius = "8px";
+  const ctx = canvas.getContext("2d");
 
-  content.appendChild(image);
+  // Charge l'image et dessine le texte et le QR code dessus
+  const image = new Image();
+  image.src = "win.jpg"; // Chemin de l'image
+  image.onload = () => {
+    // Dessine l'image sur le canevas
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    // Configure le style du texte
+    ctx.font = "bold 20px Arial";
+    ctx.fillStyle = "#0061A2"; // Couleur du texte
+    ctx.textAlign = "center";
+
+    // Ajoute le texte centré sous l'image
+    ctx.fillText(username, canvas.width / 3, canvas.height - 55);// Texte en haut au centre
+
+    // Génère un QR code et le dessine sur le canevas
+    const qrCanvas = document.createElement("canvas");
+    qrCanvas.width = 80; // Taille du QR code
+    qrCanvas.height = 80;
+
+    const qr = new QRious({
+      value: phoneNumber, // Contenu du QR code : numéro de téléphone
+      size: 80, // Taille en pixels
+      backgroundAlpha: 0, // Fond transparent
+      foreground: "#0061A2", // Couleur principale du QR code
+    });
+
+    const qrImage = new Image();
+    qrImage.src = qr.toDataURL();
+    qrImage.onload = () => {
+      // Dessine le QR code en bas à droite de l'image
+      ctx.drawImage(qrImage, canvas.width - 90, canvas.height - 90, 80, 80);
+    };
+  };
+
+  // Ajoute le canevas au contenu de la boîte
+  content.appendChild(canvas);
   modal.appendChild(content);
   document.body.appendChild(modal);
 
   // Ajoute des confettis (en utilisant une bibliothèque ou un simple effet CSS/JS)
-  const canvas = document.createElement("canvas");
-  canvas.style.position = "fixed";
-  canvas.style.top = "0";
-  canvas.style.left = "0";
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  modal.appendChild(canvas);
+  const confettiCanvas = document.createElement("canvas");
+  confettiCanvas.style.position = "fixed";
+  confettiCanvas.style.top = "0";
+  confettiCanvas.style.left = "0";
+  confettiCanvas.width = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+  modal.appendChild(confettiCanvas);
 
-  const confettiContext = canvas.getContext("2d");
+  const confettiContext = confettiCanvas.getContext("2d");
   const confettiPieces = Array.from({ length: 100 }, () => ({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
+    x: Math.random() * confettiCanvas.width,
+    y: Math.random() * confettiCanvas.height,
     speedX: (Math.random() - 0.5) * 5,
     speedY: Math.random() * 3 + 2,
     color: `hsl(${Math.random() * 360}, 100%, 50%)`,
@@ -1257,11 +1297,11 @@ function _showVictoryPopup() {
   }));
 
   function drawConfetti() {
-    confettiContext.clearRect(0, 0, canvas.width, canvas.height);
+    confettiContext.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
     confettiPieces.forEach((p) => {
       p.x += p.speedX;
       p.y += p.speedY;
-      if (p.y > canvas.height) p.y = 0;
+      if (p.y > confettiCanvas.height) p.y = 0;
 
       confettiContext.fillStyle = p.color;
       confettiContext.beginPath();
@@ -1273,15 +1313,14 @@ function _showVictoryPopup() {
 
   drawConfetti();
 
-  // Ferme la boîte après 5 secondes
+  // Ferme la boîte après 20 secondes
   setTimeout(() => {
     document.body.removeChild(modal);
   }, 20000);
 }
 
-
 // Fonction pour afficher un pop-up avec des confettis
-function showVictoryPopup() {
+function _showVictoryPopup() {
   // Déclare la variable du0 nom de l'utilisateur
   let username; // Remplacez par la valeur dynamique
   username  =localStorage.getItem('username')??"John Doe";
@@ -1313,7 +1352,7 @@ function showVictoryPopup() {
   // Ajoute un canvas pour dessiner l'image avec le texte
   const canvas = document.createElement("canvas");
   canvas.width = 300; // Largeur du canevas
-  canvas.height = 400; // Hauteur du canevas
+  canvas.height = 300; // Hauteur du canevas
   canvas.style.marginTop = "20px";
   canvas.style.borderRadius = "8px";
   const ctx = canvas.getContext("2d");
@@ -1331,7 +1370,7 @@ function showVictoryPopup() {
     ctx.textAlign = "center";
 
     // Ajoute le texte centré sous l'image
-    ctx.fillText(username, canvas.width / 3, canvas.height - 75);
+    ctx.fillText(username, canvas.width / 3, canvas.height - 55);
   };
 
   // Ajoute le canevas au contenu de la boîte
