@@ -1201,7 +1201,8 @@ function createMediaModal_2(mediaUrl) {
 // Fonction pour afficher un pop-up avec des confettis
 function showVictoryPopup() {
   // Déclare la variable du nom de l'utilisateur et le numéro de téléphone
-  const username = localStorage.getItem("username") ?? "John Doe";
+  var username = localStorage.getItem("username") ?? "John Doe";
+  username = getFirstWords(username)
   const phoneNumber = localStorage.getItem("phone") ?? "679008787"; // Numéro par défaut
 
   // Crée une boîte modale
@@ -1574,3 +1575,16 @@ function refreshPage() {
 
 // Surveille les changements des points toutes les secondes
 setInterval(checkPoints, 1000);
+
+
+function getFirstWords(username) {
+  const words = username.split(" "); // Divise la chaîne en mots
+  
+  if (words.length > 1) {
+      const firstTwoWords = `${words[0]} ${words[1]}`;
+      return firstTwoWords.length < 15 ? firstTwoWords : words[0];
+  }
+  
+  // Si un seul mot est présent, retourne ce mot
+  return words[0];
+}
