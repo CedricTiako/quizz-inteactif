@@ -180,7 +180,7 @@ async function loadAnswers(questionId) {
       answerButton.id = `answer-${answer.answer_id}`; // Set unique ID using answer_id
       answerButton.innerHTML = `
                 <div class="flex items-center">
-                    <span class="text-lg">${answer.answer_text}</span>
+                    <span class="text-base">${answer.answer_text}</span>
                 </div>
             `;
 
@@ -320,7 +320,7 @@ async function showQuestion() {
         answerButton.id = `answer-${answer.answer_id}`; // Set unique ID using answer_id
         answerButton.innerHTML = `
                     <div class="flex items-center">
-                        <span class="text-lg">${answer.answer_text}</span>
+                        <span class="text-base">${answer.answer_text}</span>
                     </div>
                 `;
 

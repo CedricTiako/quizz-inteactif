@@ -527,7 +527,7 @@ button:hover {
 
   /* Réponses */
   #answers-container button {
-    padding: 0.75rem;
+    padding: 0.5rem;
     border: 2px solid var(--gray-800);
     border-radius: 8px;
     background-color: var(--background-color);
