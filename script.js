@@ -465,7 +465,7 @@ function showFeedback(messageKey, type = "info") {
   }, 3000);
 }
 
-function updateScore(points) {
+function updateScore(points,isNegaif) {
   console.log("Updating score by:", points);
   if (points === 0) {
     console.warn("No points to update");
@@ -473,14 +473,20 @@ function updateScore(points) {
   }
   const totalPoints = document.getElementById("total-points");
   const totalPoints2 = document.getElementById("total-points2");
+
   const currentPoints = parseInt(totalPoints.textContent);
-  const newPoints = currentPoints + points; // Empêcher le score d'aller en dessous de 0
-  console.log('newPoints',newPoints)
+
+  var newPoints ;//= currentPoints + (points); // Empêcher le score d'aller en dessous de 0
+  if(isNegaif==false) newPoints = currentPoints + (points);
+  if(isNegaif==true)  newPoints = currentPoints - (points);
+  
+  console.log('newPoints',newPoints , points)
   // Animation du score
   let count = currentPoints;
   const duration = 1000;
   const step = points / (duration / 16);
 
+  console.log('step',step)
   function updateCounter() {
     count += step;
     if ((step > 0 && count >= newPoints) || (step < 0 && count <= newPoints)) {
@@ -720,7 +726,7 @@ function processAnswerFeedback(isCorrect, pointsAwarded) {
       "success"
     );
     //  createConfetti();
-    updateScore(pointsAwarded);
+    updateScore(pointsAwarded,false);
 
     // Mise à jour du compteur de bonnes réponses
     const correctAnswers = document.getElementById("correct-answers");
@@ -731,7 +737,10 @@ function processAnswerFeedback(isCorrect, pointsAwarded) {
       t("wrong_answer_feedback").replace("{points}", pointsAwarded),
       "error"
     );
-    updateScore(-pointsAwarded); // Réduire 1 point pour une mauvaise réponse
+    let pointNega= - pointsAwarded
+    console.log('pointNega',pointNega);
+    
+    updateScore(pointNega,true); // Réduire 1 point pour une mauvaise réponse
   }
 }
 async function loadRewardData() {

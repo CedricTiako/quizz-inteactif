@@ -509,6 +509,7 @@ button:hover {
 
   .cta-button:hover {
     background: var(--primary-color);
+    color: --text-color;
     transform: scale(1.1);
   }
 
